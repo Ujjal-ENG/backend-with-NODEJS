@@ -2,26 +2,30 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import express from 'express';
 import multer from 'multer';
+import path from 'path';
 
 const UPLOADS_FOLDER = '../node-toutorial/upload';
 
 const app = express();
-
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, UPLOADS_FOLDER);
+    },
+    filename: (req, file, cb) => {
+        const fileExt = path.extname(file.originalname);
+        const fileName = `${file.originalname
+            .replace(fileExt, '')
+            .toLowerCase()
+            .split(' ')
+            .join('-')}-${Date.now()}`;
+        cb(null, fileName + fileExt);
+    },
+});
 const upload = multer({
+    storage,
     dest: UPLOADS_FOLDER,
     limits: {
         fileSize: 1000000,
-    },
-    fileFilter: (req, file, cb) => {
-        if (
-            file.mimetype === 'image/jpeg' ||
-            file.mimetype === 'image/jpg' ||
-            file.mimetype === 'image/png'
-        ) {
-            cb(null, true);
-        } else {
-            cb(new Error('File must be jpeg/png/jpg format'));
-        }
     },
 });
 
