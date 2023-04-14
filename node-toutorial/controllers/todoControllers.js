@@ -1,7 +1,9 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/extensions */
-import Todo from '../model/todoModel.js';
-
+import mongoose from 'mongoose';
+import TodoSchema from '../model/todoModel.js';
 /* eslint-disable import/prefer-default-export */
+const Todo = mongoose.model('Todo', TodoSchema);
 export const createTodo = async (req, res) => {
     try {
         const newTodo = await Todo.create(req.body);
@@ -74,6 +76,21 @@ export const deleteTodoById = async (req, res) => {
 
         res.status(200).json({
             success: 'deleted successful',
+            results: dataId.length,
+            data: dataId,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: 'failed',
+            msg: error,
+        });
+    }
+};
+export const findByStatusData = async (req, res) => {
+    try {
+        const dataId = await Todo.find({ status: 'inactive' });
+        res.status(200).json({
+            success: 'active data found successful',
             results: dataId.length,
             data: dataId,
         });

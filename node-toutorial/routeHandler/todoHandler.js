@@ -5,6 +5,7 @@ import express from 'express';
 import {
   createTodo,
   deleteTodoById,
+  findByStatusData,
   getAllTodos,
   getOneTodobyID,
   updateTodoById,
@@ -27,5 +28,7 @@ router.delete('/:id', deleteTodoById);
 // find the todo using ID
 
 router.get('/:id', getOneTodobyID);
+
+router.get('/todos/active', findByStatusData);
 
 export default router;
