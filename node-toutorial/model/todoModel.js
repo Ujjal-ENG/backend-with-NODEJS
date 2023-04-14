@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 /* eslint-disable import/no-extraneous-dependencies */
 import mongoose from 'mongoose';
 
@@ -18,6 +17,6 @@ const TodoSchema = mongoose.Schema({
     },
 });
 
-const Todo = new mongoose.model('Todo', TodoSchema);
+const Todo = mongoose.model('Todo', TodoSchema);
 
 export default Todo;
