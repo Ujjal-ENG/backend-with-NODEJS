@@ -1,3 +1,4 @@
+/* eslint-disable operator-linebreak */
 /* eslint-disable import/no-extraneous-dependencies */
 import express from 'express';
 import multer from 'multer';
@@ -8,6 +9,20 @@ const app = express();
 
 const upload = multer({
     dest: UPLOADS_FOLDER,
+    limits: {
+        fileSize: 1000000,
+    },
+    fileFilter: (req, file, cb) => {
+        if (
+            file.mimetype === 'image/jpeg' ||
+            file.mimetype === 'image/jpg' ||
+            file.mimetype === 'image/png'
+        ) {
+            cb(null, true);
+        } else {
+            cb(new Error('File must be jpeg/png/jpg format'));
+        }
+    },
 });
 
 app.post('/', upload.single('avatar'), (req, res) => {
