@@ -4,7 +4,11 @@ import express from 'express';
 const app = express();
 
 app.get('/', (req, res) => {
-    res.send("Hello there");
+    res.send('Hello there');
+});
+
+app.use((req, res, next) => {
+    next('This route is not define in this site');
 });
 
 app.use((err, req, res, next) => {
