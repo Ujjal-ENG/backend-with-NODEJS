@@ -48,3 +48,22 @@ export const getOneTodobyID = async (req, res) => {
         });
     }
 };
+export const updateTodoById = async (req, res) => {
+    try {
+        const dataId = await Todo.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true,
+        });
+
+        res.status(200).json({
+            success: 'updated successful',
+            results: dataId.length,
+            data: dataId,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: 'failed',
+            msg: error,
+        });
+    }
+};
