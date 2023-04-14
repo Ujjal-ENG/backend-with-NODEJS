@@ -3,6 +3,7 @@
 import express from 'express';
 import {
   createTodo,
+  deleteTodoById,
   getAllTodos,
   getOneTodobyID,
   updateTodoById,
@@ -20,7 +21,7 @@ router.post('/', createTodo);
 router.patch('/:id', updateTodoById);
 
 // delete the todo
-router.delete('/:id', (req, res) => {});
+router.delete('/:id', deleteTodoById);
 
 // find the todo using ID
 
