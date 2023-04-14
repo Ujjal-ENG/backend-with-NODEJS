@@ -1,12 +1,12 @@
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-extraneous-dependencies */
 import express from 'express';
-import { createTodo } from '../controllers/todoControllers.js';
+import { createTodo, getAllTodos } from '../controllers/todoControllers.js';
 
 const router = express.Router();
 
 // get all the todos
-router.get('/', (req, res) => {});
+router.get('/', getAllTodos);
 
 // create the todo
 router.post('/', createTodo);

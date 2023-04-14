@@ -17,3 +17,18 @@ export const createTodo = async (req, res) => {
         });
     }
 };
+export const getAllTodos = async (req, res) => {
+    try {
+        const allTodos = await Todo.find();
+        res.status(200).json({
+            success: 'successful',
+            results: allTodos.length,
+            data: allTodos,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: 'failed',
+            msg: error,
+        });
+    }
+};
