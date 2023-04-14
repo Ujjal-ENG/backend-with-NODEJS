@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-extraneous-dependencies */
 import express from 'express';
