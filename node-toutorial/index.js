@@ -1,7 +1,18 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import express from 'express';
+import multer from 'multer';
+
+const UPLOADS_FOLDER = '../node-toutorial/upload';
 
 const app = express();
+
+const upload = multer({
+    dest: UPLOADS_FOLDER,
+});
+
+app.post('/', upload.single('avatar'), (req, res) => {
+    res.send('Hello there');
+});
 
 app.get('/', (req, res) => {
     res.send('Hello there');
