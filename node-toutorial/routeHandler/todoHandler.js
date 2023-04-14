@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-extraneous-dependencies */
 import express from 'express';
+import Todo from '../model/todoModel.js';
 
 const router = express.Router();
 
@@ -8,7 +9,21 @@ const router = express.Router();
 router.get('/', (req, res) => {});
 
 // create the todo
-router.post('/', (req, res) => {});
+router.post('/', async (req, res) => {
+    try {
+        const newTodo = await Todo.create(req.body);
+        res.status(201).json({
+            success: 'successful',
+            msg: 'Data is successfully inserted',
+            data: newTodo,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: 'failed',
+            msg: error,
+        });
+    }
+});
 
 // update the todo
 router.patch('/:id', (req, res) => {});
