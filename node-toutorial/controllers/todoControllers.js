@@ -32,3 +32,19 @@ export const getAllTodos = async (req, res) => {
         });
     }
 };
+export const getOneTodobyID = async (req, res) => {
+    try {
+        const dataId = await Todo.findById(req.params.id);
+
+        res.status(200).json({
+            success: 'successful',
+            results: dataId.length,
+            data: dataId,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: 'failed',
+            msg: error,
+        });
+    }
+};

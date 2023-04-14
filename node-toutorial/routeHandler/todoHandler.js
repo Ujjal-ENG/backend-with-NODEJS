@@ -1,7 +1,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-extraneous-dependencies */
 import express from 'express';
-import { createTodo, getAllTodos } from '../controllers/todoControllers.js';
+import { createTodo, getAllTodos, getOneTodobyID } from '../controllers/todoControllers.js';
 
 const router = express.Router();
 
@@ -19,5 +19,6 @@ router.delete('/:id', (req, res) => {});
 
 // find the todo using ID
 
-router.get('/:id', (req, res) => {});
+router.get('/:id', getOneTodobyID);
+
 export default router;
