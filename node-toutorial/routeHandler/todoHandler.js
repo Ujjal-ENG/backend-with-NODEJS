@@ -11,11 +11,12 @@ import {
   getOneTodobyID,
   updateTodoById,
 } from '../controllers/todoControllers.js';
+import { checkLogin } from '../middleware/checkLogin.js';
 
 const router = express.Router();
 
 // get all the todos
-router.get('/', getAllTodos);
+router.get('/', checkLogin, getAllTodos);
 
 // create the todo
 router.post('/', createTodo);
