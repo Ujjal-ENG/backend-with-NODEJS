@@ -24,7 +24,7 @@ export const createTodo = async (req, res) => {
 };
 export const getAllTodos = async (req, res) => {
     try {
-        const allTodos = await Todo.find();
+        const allTodos = await Todo.find().populate('user', 'name email -_id');
         res.status(200).json({
             success: 'successful',
             results: allTodos.length,
