@@ -3,6 +3,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import todoHandler from './routeHandler/todoHandler.js';
+import userHandler from './routeHandler/userHandler.js';
 
 const app = express();
 app.use(express.json());
@@ -14,6 +15,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/todo', todoHandler);
+app.use('/user', userHandler);
 
 app.use((err, req, res, next) => {
     if (err.message) {
