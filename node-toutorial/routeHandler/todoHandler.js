@@ -19,7 +19,7 @@ const router = express.Router();
 router.get('/', checkLogin, getAllTodos);
 
 // create the todo
-router.post('/', createTodo);
+router.post('/', checkLogin, createTodo);
 
 // update the todo
 router.patch('/:id', updateTodoById);

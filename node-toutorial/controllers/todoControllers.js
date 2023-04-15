@@ -6,7 +6,10 @@ import TodoSchema from '../model/todoModel.js';
 const Todo = mongoose.model('Todo', TodoSchema);
 export const createTodo = async (req, res) => {
     try {
-        const newTodo = await Todo.create(req.body);
+        const newTodo = await Todo.create({
+            ...req.body,
+            user: req.userId,
+        });
         res.status(201).json({
             success: 'successful',
             msg: 'Data is successfully inserted',
