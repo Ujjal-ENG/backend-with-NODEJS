@@ -20,9 +20,14 @@ const TodoSchema = mongoose.Schema({
 // static methids
 
 TodoSchema.statics = {
-    findByJs() {
-        return this.find({ title: /react/i });
+    findByActive() {
+        return this.find({ status: 'active' });
     },
 };
-
+// query helpers
+TodoSchema.query = {
+    findbyLang(language) {
+        return this.find({ title: new RegExp(language, 'i') });
+    },
+};
 export default TodoSchema;

@@ -88,12 +88,30 @@ export const deleteTodoById = async (req, res) => {
 };
 export const findByStatusData = async (req, res) => {
     try {
-        // const dataId = await Todo.find({ status: 'inactive' });
-        const dataId = await Todo.findByJs();
+        const dataId = await Todo.find({ status: 'inactive' });
+        // const dataId = await Todo.findByActive();
+
         res.status(200).json({
             success: 'active data found successful',
             results: dataId.length,
             data: dataId,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: 'failed',
+            msg: error,
+        });
+    }
+};
+
+export const findByDataLang = async (req, res) => {
+    try {
+        const data = await Todo.findbyLang('react');
+        console.log(data);
+        res.status(200).json({
+            success: 'find the data based on languages',
+            results: data.length,
+            datas: data,
         });
     } catch (error) {
         res.status(500).json({

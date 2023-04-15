@@ -5,6 +5,7 @@ import express from 'express';
 import {
   createTodo,
   deleteTodoById,
+  findByDataLang,
   findByStatusData,
   getAllTodos,
   getOneTodobyID,
@@ -29,6 +30,10 @@ router.delete('/:id', deleteTodoById);
 
 router.get('/:id', getOneTodobyID);
 
+// find the active data
 router.get('/todos/active', findByStatusData);
+
+// find by data using by languages
+router.get('/todos/language', findByDataLang);
 
 export default router;
