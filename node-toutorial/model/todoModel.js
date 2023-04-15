@@ -17,4 +17,12 @@ const TodoSchema = mongoose.Schema({
     },
 });
 
+// static methids
+
+TodoSchema.statics = {
+    findByJs() {
+        return this.find({ title: /react/i });
+    },
+};
+
 export default TodoSchema;

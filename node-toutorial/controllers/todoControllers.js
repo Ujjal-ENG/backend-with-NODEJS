@@ -88,7 +88,8 @@ export const deleteTodoById = async (req, res) => {
 };
 export const findByStatusData = async (req, res) => {
     try {
-        const dataId = await Todo.find({ status: 'inactive' });
+        // const dataId = await Todo.find({ status: 'inactive' });
+        const dataId = await Todo.findByJs();
         res.status(200).json({
             success: 'active data found successful',
             results: dataId.length,
