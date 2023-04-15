@@ -1,14 +1,17 @@
+/* eslint-disable comma-dangle */
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/extensions */
 /* eslint-disable import/prefer-default-export */
 import mongoose from 'mongoose';
 
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import UserSchema from '../model/userModel.js';
 
 const User = mongoose.model('User', UserSchema);
 
+dotenv.config();
 export const userSignUpInfo = async (req, res) => {
     try {
         const hashPassword = await bcrypt.hash(req.body.password, 10);
@@ -39,16 +42,30 @@ export const userLogin = async (req, res) => {
 
             if (isValidPassword) {
                 // generate token
-                const token = jwt.sign({
-                    username: user[0].username,
-                    userId: user[0]._id,
+                const token = jwt.sign(
+                    {
+                        username: user[0].username,
+                        // eslint-disable-next-line no-underscore-dangle
+                        userId: user[0]._id,
+                    },
+                    process.env.JWT_SECRET,
+
+                    { expiresIn: '1h' }
+                );
+                res.status(201).json({
+                    success: 'User Login Successfully',
+                    data: token,
+                });
+            } else {
+                res.status(505).json({
+                    success: 'Authentication failed',
                 });
             }
+        } else {
+            res.status(505).json({
+                success: 'Authentication failed',
+            });
         }
-        res.status(201).json({
-            success: 'User Register Successfully',
-            data: newUser,
-        });
     } catch (error) {
         res.status(505).json({
             success: 'failed',
