@@ -1,16 +1,23 @@
 {
-    "name": "nodejsplaylist",
+    "name": "learn-express-js",
     "version": "1.0.0",
     "description": "��#\u0000 \u0000N\u0000o\u0000d\u0000e\u0000J\u0000S\u0000P\u0000l\u0000a\u0000y\u0000L\u0000i\u0000s\u0000t\u0000\r\u0000 \u0000",
     "main": "index.js",
+    "type": "module",
     "scripts": {
-        "start": "node index"
+        "start": "node index",
+        "dev": "nodemon index.js"
     },
     "keywords": [],
-    "author": "",
+    "author": "Ujjal kumar Roy",
     "license": "ISC",
     "dependencies": {
-        "eslint-config-airbnb": "^19.0.4"
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "eslint-config-airbnb": "^19.0.4",
+        "express": "^4.18.2",
+        "morgan": "^1.10.0",
+        "nodemon": "^2.0.22"
     },
     "devDependencies": {
         "eslint": "^8.37.0",
