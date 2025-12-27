@@ -1,0 +1,33 @@
+{
+  "version": "3.8",
+  "services": {
+    "app": {
+      "build": {
+        "context": "..",
+        "dockerfile": "docker/Dockerfile"
+      },
+      "ports": [
+        "4000:4000"
+      ],
+      "environment": [
+        "NODE_ENV=production",
+        "MONGODB_URI=mongodb://mongodb:27017/xacos"
+      ],
+      "depends_on": [
+        "mongodb"
+      ]
+    },
+    "mongodb": {
+      "image": "mongo:7",
+      "ports": [
+        "27017:27017"
+      ],
+      "volumes": [
+        "mongodb_data:/data/db"
+      ]
+    }
+  },
+  "volumes": {
+    "mongodb_data": {}
+  }
+}
