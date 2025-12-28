@@ -6,7 +6,7 @@ const router = Router();
 // import userRoutes from "./user.routes.js";
 // router.use("/users", userRoutes);
 
-router.get("/ret", (req, res) => {
+router.get("/", (req, res) => {
   res.json({ message: "API is running" });
 });
 

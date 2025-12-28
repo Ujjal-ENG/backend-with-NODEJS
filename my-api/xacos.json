@@ -1,0 +1,8 @@
+{
+  "ts": true,
+  "mongodb": true,
+  "prisma": false,
+  "redis": false,
+  "ws": false,
+  "socketIo": false
+}
