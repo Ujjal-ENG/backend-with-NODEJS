@@ -1,30 +1,28 @@
 import http from 'http'
 import queryString from 'querystring'
 import url from 'url'
+import { Worker } from 'worker_threads'
 
-http.createServer((req, res) => {
+http.createServer(async(req, res) => {
 
   res.write("Your request is being processed.... \n")
   const query = url.parse(req.url).query
   const n = Number(queryString.parse(query)['n'])
-  findSum(n, (sum) => {
-   res.end(`The sum is: ${sum} \n`)
- })
-  
+  const sum = await findSum(n)
+  res.end(`This numbers: ${n}, sum = ${sum}`)
 }).listen(3000, () => {
   console.log(`Server is listening on http://localhost:${3000}`)
 })
 
 
-function findSum(n, sumCallBack) {
-  let sum = 0;
-  function add(i, cb) {
-    sum += i
-    if (i == n) {
-      return cb(sum)
-    }
-    setImmediate(add.bind(null,i+1,cb))
-  }
 
-  add(1,sumCallBack)
+function findSum(n) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker('./worker/summation.js', { workerData: { n } })
+    
+    worker.on('message', (data) => {
+      resolve(data)
+    })
+    worker.on('error', reject)
+  })
 }
