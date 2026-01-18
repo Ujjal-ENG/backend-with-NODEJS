@@ -1,10 +1,14 @@
+import { getRenderCount } from "@/app/utils/useRenderCount";
 import { useFormContext } from "react-hook-form";
 import { FormTextField } from "./FormTextField";
+
+const RenderCount = getRenderCount();
 export const AddressSection = () => {
   const { control } = useFormContext();
   return (
     <>
       <div className="sm:col-span-2 text-black">Delivery Address</div>
+      <RenderCount />
 
       <div className="sm:col-span-2">
         <FormTextField

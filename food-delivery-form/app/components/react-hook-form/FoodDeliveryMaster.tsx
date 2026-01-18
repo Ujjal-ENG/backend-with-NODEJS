@@ -1,6 +1,9 @@
 import { FoodDeliveryMasterFormTypes } from "@/app/types/food-deliver-master.type";
+import { getRenderCount } from "@/app/utils/useRenderCount";
 import { useFormContext, useFormState } from "react-hook-form";
 import { FormTextField } from "./FormTextField";
+
+const RenderCount = getRenderCount();
 export const FoodDeliveryMaster = () => {
   const { control, getValues } = useFormContext();
   const { errors } = useFormState<FoodDeliveryMasterFormTypes>({
@@ -11,6 +14,8 @@ export const FoodDeliveryMaster = () => {
     <>
       {/* Customer Name */}
       <div className="sm:col-span-2">
+        <RenderCount />
+        <br />
         <FormTextField
           name="customerName"
           control={control}
