@@ -19,6 +19,7 @@ export default function FoodDeliveryForm() {
   const onSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log(values);
+    setValue({ customerName: "", mobile: 0 });
   };
 
   return (
