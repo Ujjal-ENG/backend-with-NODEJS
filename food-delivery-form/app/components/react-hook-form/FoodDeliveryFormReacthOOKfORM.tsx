@@ -2,7 +2,7 @@
 
 import { getRenderCount } from "@/app/utils/useRenderCount";
 import { Grid } from "@mui/material";
-import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
+import { FormProvider, useForm, useWatch, UseFormReturn } from "react-hook-form";
 import { AddressSection } from "./AddressSection";
 import { CheckoutSection } from "./CheckoutSection";
 import { FoodDeliveryMaster } from "./FoodDeliveryMaster";
@@ -44,10 +44,10 @@ export default function FoodDeliveryFormReactHookForm() {
   const {
     handleSubmit,
     reset,
+    control,
     formState: {
       isValid,
       isSubmitSuccessful,
-
       isSubmitting,
     },
   } = methods;
@@ -57,6 +57,11 @@ export default function FoodDeliveryFormReactHookForm() {
     reset();
   };
 
+  const customerName = useWatch({
+    control,
+    name: "customerName",
+  });
+  console.log("customerName", customerName);
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-center bg-zinc-50 font-sans">
       <div className="w-full max-w-3xl px-4 py-10">
