@@ -8,6 +8,7 @@ export const FoodDeliveryMaster = () => {
   const { control, getValues } = useFormContext();
   const { errors } = useFormState<FoodDeliveryMasterFormTypes>({
     name: ["customerName", "orderNumber", "mobile", "email"],
+    exact: true,
   });
   console.log("errors from food delivery master", errors);
   return (

@@ -21,6 +21,7 @@ export const CheckoutSection = ({
   const { control } = useFormContext();
   const { errors } = useFormState<CheckoutSectionProps>({
     name: ["paymentOptions", "deliveryOptions"],
+    exact: true,
   });
   console.log("erros from checkout section ", errors);
   return (
