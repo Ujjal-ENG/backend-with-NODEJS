@@ -1,25 +1,15 @@
 "use client";
-import { ChangeEvent } from "react";
-import { useForm } from "react-hook-form";
 
 type FoodDeliveryFormProps = {
   customerName: string;
   mobile: number;
 };
 export default function FoodDeliveryFormReactHookForm() {
-  const { register, handleSubmit } = useForm<FoodDeliveryFormProps>();
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {};
-
-  const onSubmit = (formData: FoodDeliveryFormProps) => {
-    console.log(formData);
-  };
-
   return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <h3 className="text-2xl">React Hook Form</h3>
       <br />
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form>
         {/* Customer Name */}
         <div>
           <label
@@ -31,7 +21,6 @@ export default function FoodDeliveryFormReactHookForm() {
           <input
             type="text"
             id="customerName"
-            {...register("customerName")}
             required
             className="w-full px-4 py-3 rounded-lg border border-gray-300 
                        focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
@@ -52,8 +41,6 @@ export default function FoodDeliveryFormReactHookForm() {
           <input
             type="tel"
             id="mobile"
-            {...register("mobile")}
-            required
             pattern="[0-9]{10,15}"
             className="w-full px-4 py-3 rounded-lg border border-gray-300 
                        focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
