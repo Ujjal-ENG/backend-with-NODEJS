@@ -23,8 +23,9 @@ export default function FoodDeliveryFormTypical() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <h3 className="text-2xl">Typical Form</h3>
+      <br />
       <form onSubmit={onSubmit}>
         {/* Customer Name */}
         <div>

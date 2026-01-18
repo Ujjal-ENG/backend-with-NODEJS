@@ -1,31 +1,25 @@
 "use client";
-import { ChangeEvent, SyntheticEvent, useState } from "react";
+import { ChangeEvent } from "react";
+import { useForm } from "react-hook-form";
 
 type FoodDeliveryFormProps = {
   customerName: string;
   mobile: number;
 };
 export default function FoodDeliveryFormReactHookForm() {
-  const [values, setValue] = useState<FoodDeliveryFormProps>({
-    customerName: "",
-    mobile: 0,
-  });
+  const { register, handleSubmit } = useForm<FoodDeliveryFormProps>();
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setValue({ ...values, [name]: value });
-  };
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {};
 
-  const onSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log(values);
-    setValue({ customerName: "", mobile: 0 });
+  const onSubmit = (formData: FoodDeliveryFormProps) => {
+    console.log(formData);
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <h3 className="text-2xl">React Hook Form</h3>
-      <form onSubmit={onSubmit}>
+      <br />
+      <form onSubmit={handleSubmit(onSubmit)}>
         {/* Customer Name */}
         <div>
           <label
@@ -37,9 +31,7 @@ export default function FoodDeliveryFormReactHookForm() {
           <input
             type="text"
             id="customerName"
-            name="customerName"
-            value={values?.customerName}
-            onChange={handleChange}
+            {...register("customerName")}
             required
             className="w-full px-4 py-3 rounded-lg border border-gray-300 
                        focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
@@ -60,9 +52,7 @@ export default function FoodDeliveryFormReactHookForm() {
           <input
             type="tel"
             id="mobile"
-            name="mobile"
-            value={values?.mobile}
-            onChange={handleChange}
+            {...register("mobile")}
             required
             pattern="[0-9]{10,15}"
             className="w-full px-4 py-3 rounded-lg border border-gray-300 
