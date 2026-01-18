@@ -1,32 +1,36 @@
 "use client";
 
 import { getRenderCount } from "@/app/utils/useRenderCount";
-import { Grid, TextField } from "@mui/material";
-import { Controller, useForm } from "react-hook-form";
+import { Grid } from "@mui/material";
+import { useForm } from "react-hook-form";
+import { FormSelectField } from "./FormSelectField";
+import { FormTextField } from "./FormTextField";
 
 type FoodDeliveryFormProps = {
   customerName: string;
   mobile: number;
   orderNumber: string;
   email: string;
+  orderPaymentOption: string;
+  deliveryType: string;
 };
 
 const RenderCount = getRenderCount();
 export default function FoodDeliveryFormReactHookForm() {
-  const { control, handleSubmit, formState, reset, getValues } =
-    useForm<FoodDeliveryFormProps>({
-      defaultValues: {
-        customerName: "Hello World",
-        mobile: 2154,
-        orderNumber: "",
-        email: "",
-      },
-      mode: "onChange",
-    });
+  const { control, handleSubmit, getValues } = useForm<FoodDeliveryFormProps>({
+    defaultValues: {
+      customerName: "Hello World",
+      mobile: 2154,
+      orderNumber: "",
+      email: "",
+      orderPaymentOption: "",
+      deliveryType: "",
+    },
+    mode: "onChange",
+  });
   const onSubmit = (data: FoodDeliveryFormProps) => {
     console.log(data);
   };
-  console.log(formState);
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-center bg-zinc-50 font-sans ">
       <h3 className="text-2xl text-black">React Hook Form</h3>
@@ -36,9 +40,11 @@ export default function FoodDeliveryFormReactHookForm() {
         <Grid container spacing={2}>
           {/* Customer Name */}
           <div className="sm:col-span-2">
-            <Controller
+            <FormTextField
               name="customerName"
               control={control}
+              label="Customer Name"
+              required
               rules={{
                 required: "Customer name is required",
                 minLength: {
@@ -46,24 +52,16 @@ export default function FoodDeliveryFormReactHookForm() {
                   message: "Customer name must be at least 3 characters",
                 },
               }}
-              render={({ field }) => (
-                <TextField
-                  required
-                  id="customerName"
-                  label="Customer Name"
-                  {...field}
-                  error={!!formState.errors.customerName}
-                  helperText={formState.errors.customerName?.message}
-                />
-              )}
             />
           </div>
 
           {/* Order Number */}
           <div>
-            <Controller
+            <FormTextField
               name="orderNumber"
               control={control}
+              label="Order Number"
+              required
               rules={{
                 required: "Order number is required",
                 minLength: {
@@ -90,24 +88,17 @@ export default function FoodDeliveryFormReactHookForm() {
                   return true;
                 },
               }}
-              render={({ field }) => (
-                <TextField
-                  required
-                  id="orderNumber"
-                  label="Order Number"
-                  {...field}
-                  error={!!formState.errors.orderNumber}
-                  helperText={formState.errors.orderNumber?.message}
-                />
-              )}
             />
           </div>
 
           {/* Mobile */}
           <div>
-            <Controller
+            <FormTextField
               name="mobile"
               control={control}
+              label="Mobile Number"
+              type="number"
+              required
               rules={{
                 required: "Mobile number is required",
                 validate: (value) => {
@@ -124,49 +115,62 @@ export default function FoodDeliveryFormReactHookForm() {
                   return true;
                 },
               }}
-              render={({ field }) => (
-                <TextField
-                  required
-                  id="mobile"
-                  label="Mobile Number"
-                  {...field}
-                  type="number"
-                  error={!!formState.errors.mobile}
-                  helperText={formState.errors.mobile?.message}
-                />
-              )}
             />
           </div>
 
           {/* Email */}
           <div className="sm:col-span-2">
-            <Controller
+            <FormTextField
               name="email"
               control={control}
+              label="Email"
+              type="email"
+              autoComplete="email"
+              required
               rules={{
                 required: "Email is required",
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                   message: "Enter a valid email address",
                 },
-                validate: (value) => {
+                validate: (value: string) => {
                   if (!value.includes("@gmail.com")) {
                     return "Please add valid email";
                   }
                 },
               }}
-              render={({ field }) => (
-                <TextField
-                  required
-                  id="email"
-                  label="Email"
-                  type="email"
-                  autoComplete="email"
-                  {...field}
-                  error={!!formState.errors.email}
-                  helperText={formState.errors.email?.message}
-                />
-              )}
+            />
+          </div>
+
+          {/* Order Payment Option */}
+          <div className="sm:col-span-2">
+            <FormSelectField
+              name="orderPaymentOption"
+              control={control}
+              label="Order Payment Option"
+              required
+              options={[
+                { label: "Cash", value: "cash" },
+                { label: "Card", value: "card" },
+                { label: "Online", value: "online" },
+              ]}
+              rules={{ required: "Payment option is required" }}
+            />
+          </div>
+
+          {/* Delivery Type */}
+          <div className="sm:col-span-2">
+            <FormSelectField
+              name="deliveryType"
+              control={control}
+              label="Delivery Type"
+              required
+              options={[
+                { label: "Standard", value: "standard" },
+                { label: "Express", value: "express" },
+                { label: "Pickup", value: "pickup" },
+              ]}
+              rules={{ required: "Delivery type is required" }}
             />
           </div>
         </Grid>
