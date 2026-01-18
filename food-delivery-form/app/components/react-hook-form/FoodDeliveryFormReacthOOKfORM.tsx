@@ -2,7 +2,12 @@
 
 import { getRenderCount } from "@/app/utils/useRenderCount";
 import { Grid } from "@mui/material";
-import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
+import {
+  FieldErrors,
+  FormProvider,
+  useForm,
+  UseFormReturn,
+} from "react-hook-form";
 import { AddressSection } from "./AddressSection";
 import { CheckoutSection } from "./CheckoutSection";
 import { FoodDeliveryMaster } from "./FoodDeliveryMaster";
@@ -44,13 +49,18 @@ export default function FoodDeliveryFormReactHookForm() {
   const {
     handleSubmit,
     reset,
-
+    getValues,
     formState: { isValid, isSubmitSuccessful, isSubmitting },
   } = methods;
   const onSubmit = async (data: FoodDeliveryFormProps) => {
     await new Promise((resolve) => setTimeout(resolve, 1400));
     console.log(data);
     reset();
+  };
+
+  const onError = (error: FieldErrors) => {
+    console.log(error);
+    console.log(getValues("mobile"));
   };
 
   return (
@@ -64,7 +74,10 @@ export default function FoodDeliveryFormReactHookForm() {
           Each section shows the component name and renders row by row.
         </p>
         <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-6">
+          <form
+            onSubmit={handleSubmit(onSubmit, onError)}
+            className="mt-6 space-y-6"
+          >
             <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
               <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
                 FoodDeliveryMaster
