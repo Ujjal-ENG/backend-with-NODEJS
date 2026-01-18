@@ -15,6 +15,18 @@ type FoodDeliveryFormProps = {
   deliveryType: string;
 };
 
+const orderPaymentOptions = [
+  { label: "Cash", value: "cash" },
+  { label: "Card", value: "card" },
+  { label: "Online", value: "online" },
+];
+
+const deliveryTypeOptions = [
+  { label: "Standard", value: "standard" },
+  { label: "Express", value: "express" },
+  { label: "Pickup", value: "pickup" },
+];
+
 const RenderCount = getRenderCount();
 export default function FoodDeliveryFormReactHookForm() {
   const { control, handleSubmit, getValues } = useForm<FoodDeliveryFormProps>({
@@ -149,11 +161,7 @@ export default function FoodDeliveryFormReactHookForm() {
               control={control}
               label="Order Payment Option"
               required
-              options={[
-                { label: "Cash", value: "cash" },
-                { label: "Card", value: "card" },
-                { label: "Online", value: "online" },
-              ]}
+              options={orderPaymentOptions}
               rules={{ required: "Payment option is required" }}
             />
           </div>
@@ -165,11 +173,7 @@ export default function FoodDeliveryFormReactHookForm() {
               control={control}
               label="Delivery Type"
               required
-              options={[
-                { label: "Standard", value: "standard" },
-                { label: "Express", value: "express" },
-                { label: "Pickup", value: "pickup" },
-              ]}
+              options={deliveryTypeOptions}
               rules={{ required: "Delivery type is required" }}
             />
           </div>

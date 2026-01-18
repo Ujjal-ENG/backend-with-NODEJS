@@ -60,7 +60,7 @@ export const FormSelectField = <
         select
         fullWidth
         size="medium"
-        InputLabelProps={{ shrink: true }}
+        slotProps={{ inputLabel: { shrink: true } }}
         error={!!fieldState.error}
         helperText={fieldState.error?.message ?? helperText}
       >
