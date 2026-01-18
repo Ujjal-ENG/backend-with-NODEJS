@@ -2,7 +2,7 @@
 
 import { getRenderCount } from "@/app/utils/useRenderCount";
 import { Grid } from "@mui/material";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { AddressSection } from "./AddressSection";
 import { CheckoutSection } from "./CheckoutSection";
 import { FormTextField } from "./FormTextField";
@@ -50,8 +50,9 @@ export default function FoodDeliveryFormReactHookForm() {
       <h3 className="text-2xl text-black">React Hook Form</h3>
       <RenderCount />
       <br />
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container spacing={2}>
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={2}>
           {/* Customer Name */}
           <div className="sm:col-span-2">
             <FormTextField
@@ -154,27 +155,27 @@ export default function FoodDeliveryFormReactHookForm() {
             />
           </div>
 
-          <AddressSection control={control} />
+          <AddressSection />
         </Grid>
-        <CheckoutSection
-          control={control}
-          paymentOptions={orderPaymentOptions}
-          deliveryOptions={deliveryTypeOptions}
-        />
-        {/* Submit */}
-        <div className="pt-4">
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 
+          <CheckoutSection
+            paymentOptions={orderPaymentOptions}
+            deliveryOptions={deliveryTypeOptions}
+          />
+          {/* Submit */}
+          <div className="pt-4">
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 
                        text-white font-medium py-3.5 px-6 rounded-lg
                        focus:outline-none focus:ring-2 focus:ring-indigo-500 
                        focus:ring-offset-2 transition-all  duration-200 
                        shadow-md hover:shadow-lg active:scale-[0.98]"
-          >
-            Submit Information
-          </button>
-        </div>
-      </form>
+            >
+              Submit Information
+            </button>
+          </div>
+        </form>
+      </FormProvider>
     </div>
   );
 }
