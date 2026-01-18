@@ -13,10 +13,12 @@ type FoodDeliveryFormProps = {
   email: string;
   orderPaymentOption: string;
   deliveryType: string;
-  streetAddress: string;
-  landmark: string;
-  city: string;
-  state: string;
+  address: {
+    streetAddress: string;
+    landmark: string;
+    city: string;
+    state: string;
+  };
 };
 
 const orderPaymentOptions = [
@@ -41,10 +43,12 @@ export default function FoodDeliveryFormReactHookForm() {
       email: "",
       orderPaymentOption: "",
       deliveryType: "",
-      streetAddress: "",
-      landmark: "",
-      city: "",
-      state: "",
+      address: {
+        streetAddress: "",
+        landmark: "",
+        city: "",
+        state: "",
+      },
     },
     mode: "onChange",
   });
@@ -81,7 +85,6 @@ export default function FoodDeliveryFormReactHookForm() {
               name="orderNumber"
               control={control}
               label="Order Number"
-              required
               rules={{
                 required: "Order number is required",
                 minLength: {
@@ -146,7 +149,6 @@ export default function FoodDeliveryFormReactHookForm() {
               label="Email"
               type="email"
               autoComplete="email"
-              required
               rules={{
                 required: "Email is required",
                 pattern: {
@@ -162,13 +164,14 @@ export default function FoodDeliveryFormReactHookForm() {
             />
           </div>
 
+          <br />
+          <div className="text-black">Delivery Address</div>
           {/* Street Address */}
           <div className="sm:col-span-2">
             <FormTextField
-              name="streetAddress"
+              name="address.streetAddress"
               control={control}
               label="Street Address"
-              required
               rules={{ required: "Street address is required" }}
             />
           </div>
@@ -176,7 +179,7 @@ export default function FoodDeliveryFormReactHookForm() {
           {/* Landmark */}
           <div className="sm:col-span-2">
             <FormTextField
-              name="landmark"
+              name="address.landmark"
               control={control}
               label="Landmark"
               rules={{
@@ -191,10 +194,9 @@ export default function FoodDeliveryFormReactHookForm() {
           {/* City */}
           <div>
             <FormTextField
-              name="city"
+              name="address.city"
               control={control}
               label="City"
-              required
               rules={{ required: "City is required" }}
             />
           </div>
@@ -202,10 +204,9 @@ export default function FoodDeliveryFormReactHookForm() {
           {/* State */}
           <div>
             <FormTextField
-              name="state"
+              name="address.state"
               control={control}
               label="State"
-              required
               rules={{ required: "State is required" }}
             />
           </div>
@@ -217,7 +218,6 @@ export default function FoodDeliveryFormReactHookForm() {
             name="orderPaymentOption"
             control={control}
             label="Order Payment Option"
-            required
             options={orderPaymentOptions}
             rules={{ required: "Payment option is required" }}
           />
@@ -228,7 +228,6 @@ export default function FoodDeliveryFormReactHookForm() {
             name="deliveryType"
             control={control}
             label="Delivery Type"
-            required
             options={deliveryTypeOptions}
             rules={{ required: "Delivery type is required" }}
           />
