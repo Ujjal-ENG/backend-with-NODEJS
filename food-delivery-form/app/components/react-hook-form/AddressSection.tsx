@@ -4,7 +4,7 @@ import { FormTextField } from "./FormTextField";
 
 const RenderCount = getRenderCount();
 export const AddressSection = () => {
-  const { control } = useFormContext();
+  const { control, getFieldState } = useFormContext();
   const { errors } = useFormState({
     name: ["address"],
   });
@@ -53,6 +53,10 @@ export const AddressSection = () => {
           label="State"
           rules={{ required: "State is required" }}
         />
+      </div>
+      <div className="text-red-600">
+        {getFieldState("address").invalid &&
+          "Address Form Filed not validated yet...Please Check it again!!"}
       </div>
     </>
   );
