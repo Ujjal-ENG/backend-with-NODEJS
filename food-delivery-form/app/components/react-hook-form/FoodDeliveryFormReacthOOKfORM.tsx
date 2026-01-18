@@ -13,7 +13,7 @@ type FoodDeliveryFormProps = {
 
 const RenderCount = getRenderCount();
 export default function FoodDeliveryFormReactHookForm() {
-  const { control, handleSubmit, formState, reset } =
+  const { control, handleSubmit, formState, reset, getValues } =
     useForm<FoodDeliveryFormProps>({
       defaultValues: {
         customerName: "Hello World",
@@ -76,6 +76,10 @@ export default function FoodDeliveryFormReactHookForm() {
                     "Order number can only contain letters, numbers, or dashes",
                 },
                 validate: (value) => {
+                  const customerName = getValues("customerName").toLowerCase();
+                  if (!customerName.includes("ujjal")) {
+                    return "PLease add customer name to Ujjal";
+                  }
                   const stringValue = String(value ?? "");
                   if (stringValue.length < 4) {
                     return "Order number must be at least 4 characters";
