@@ -13,6 +13,10 @@ type FoodDeliveryFormProps = {
   email: string;
   orderPaymentOption: string;
   deliveryType: string;
+  streetAddress: string;
+  landmark: string;
+  city: string;
+  state: string;
 };
 
 const orderPaymentOptions = [
@@ -37,6 +41,10 @@ export default function FoodDeliveryFormReactHookForm() {
       email: "",
       orderPaymentOption: "",
       deliveryType: "",
+      streetAddress: "",
+      landmark: "",
+      city: "",
+      state: "",
     },
     mode: "onChange",
   });
@@ -154,31 +162,77 @@ export default function FoodDeliveryFormReactHookForm() {
             />
           </div>
 
-          {/* Order Payment Option */}
+          {/* Street Address */}
           <div className="sm:col-span-2">
-            <FormSelectField
-              name="orderPaymentOption"
+            <FormTextField
+              name="streetAddress"
               control={control}
-              label="Order Payment Option"
+              label="Street Address"
               required
-              options={orderPaymentOptions}
-              rules={{ required: "Payment option is required" }}
+              rules={{ required: "Street address is required" }}
             />
           </div>
+
+          {/* Landmark */}
+          <div className="sm:col-span-2">
+            <FormTextField
+              name="landmark"
+              control={control}
+              label="Landmark"
+              rules={{
+                maxLength: {
+                  value: 100,
+                  message: "Landmark must be under 100 characters",
+                },
+              }}
+            />
+          </div>
+
+          {/* City */}
+          <div>
+            <FormTextField
+              name="city"
+              control={control}
+              label="City"
+              required
+              rules={{ required: "City is required" }}
+            />
+          </div>
+
+          {/* State */}
+          <div>
+            <FormTextField
+              name="state"
+              control={control}
+              label="State"
+              required
+              rules={{ required: "State is required" }}
+            />
+          </div>
+
+          {/* Order Payment Option */}
+        </Grid>
+        <div className="flex justify-between align-middle gap-2 mt-4">
+          <FormSelectField
+            name="orderPaymentOption"
+            control={control}
+            label="Order Payment Option"
+            required
+            options={orderPaymentOptions}
+            rules={{ required: "Payment option is required" }}
+          />
 
           {/* Delivery Type */}
-          <div className="sm:col-span-2">
-            <FormSelectField
-              name="deliveryType"
-              control={control}
-              label="Delivery Type"
-              required
-              options={deliveryTypeOptions}
-              rules={{ required: "Delivery type is required" }}
-            />
-          </div>
-        </Grid>
 
+          <FormSelectField
+            name="deliveryType"
+            control={control}
+            label="Delivery Type"
+            required
+            options={deliveryTypeOptions}
+            rules={{ required: "Delivery type is required" }}
+          />
+        </div>
         {/* Submit */}
         <div className="pt-4">
           <button
