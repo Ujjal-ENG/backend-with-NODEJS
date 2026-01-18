@@ -7,7 +7,7 @@ type FoodDeliveryFormProps = {
   customerName: string;
   mobile: number;
 };
-const renderCount = getRenderCount();
+const RenderCount = getRenderCount();
 export default function FoodDeliveryFormTypical() {
   const [values, setValue] = useState<FoodDeliveryFormProps>({
     customerName: "",
@@ -28,7 +28,7 @@ export default function FoodDeliveryFormTypical() {
   return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans ">
       <h3 className="text-2xl text-black">Typical Form</h3>
-      {renderCount()}
+      <RenderCount />
       <br />
       <form onSubmit={onSubmit}>
         {/* Customer Name */}
