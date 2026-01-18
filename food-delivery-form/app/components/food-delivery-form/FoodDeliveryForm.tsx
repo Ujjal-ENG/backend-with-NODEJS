@@ -1,5 +1,5 @@
 "use client";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, SyntheticEvent, useState } from "react";
 
 type FoodDeliveryFormProps = {
   customerName: string;
@@ -15,9 +15,15 @@ export default function FoodDeliveryForm() {
     const { name, value } = e.target;
     setValue({ ...values, [name]: value });
   };
+
+  const onSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log(values);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <form>
+      <form onSubmit={onSubmit}>
         {/* Customer Name */}
         <div>
           <label
