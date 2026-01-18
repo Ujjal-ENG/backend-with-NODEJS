@@ -41,10 +41,21 @@ export default function FoodDeliveryFormReactHookForm() {
       mode: "onChange",
     });
 
-  const { handleSubmit } = methods;
+  const {
+    handleSubmit,
+    formState: { isSubmitSuccessful, isSubmitted, isSubmitting, submitCount },
+  } = methods;
   const onSubmit = (data: FoodDeliveryFormProps) => {
-    console.log(data);
+    setTimeout(() => {
+      console.log(data);
+    }, 400);
   };
+
+  // console.log("isValidating", isValidating);
+  console.log("isSubmitted", isSubmitted);
+  console.log("isSubmitSuccessful", isSubmitSuccessful);
+  console.log("isSubmitting", isSubmitting);
+  console.log("submitCount", submitCount);
   return (
     <div className="flex flex-col w-full min-h-screen items-center justify-center bg-zinc-50 font-sans ">
       <h3 className="text-2xl text-black">React Hook Form</h3>
