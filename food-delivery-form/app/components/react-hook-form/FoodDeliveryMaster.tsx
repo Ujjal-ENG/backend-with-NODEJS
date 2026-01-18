@@ -1,8 +1,6 @@
 import { FoodDeliveryMasterFormTypes } from "@/app/types/food-deliver-master.type";
-import { useFormState } from "react-dom";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useFormState } from "react-hook-form";
 import { FormTextField } from "./FormTextField";
-
 export const FoodDeliveryMaster = () => {
   const { control, getValues } = useFormContext();
   const { errors } = useFormState<FoodDeliveryMasterFormTypes>({
