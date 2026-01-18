@@ -43,12 +43,17 @@ export default function FoodDeliveryFormReactHookForm() {
 
   const {
     handleSubmit,
-    formState: { isSubmitSuccessful, isSubmitted, isSubmitting, submitCount },
+    formState: {
+      isValid,
+      isSubmitSuccessful,
+      isSubmitted,
+      isSubmitting,
+      submitCount,
+    },
   } = methods;
-  const onSubmit = (data: FoodDeliveryFormProps) => {
-    setTimeout(() => {
-      console.log(data);
-    }, 400);
+  const onSubmit = async (data: FoodDeliveryFormProps) => {
+    await new Promise((resolve) => setTimeout(resolve, 1400));
+    console.log(data);
   };
 
   // console.log("isValidating", isValidating);
@@ -74,12 +79,13 @@ export default function FoodDeliveryFormReactHookForm() {
           {/* Submit */}
           <div className="pt-4">
             <button
+              disabled={!isValid || isSubmitting || isSubmitted}
               type="submit"
               className="w-full bg-indigo-600 hover:bg-indigo-700 
                        text-white font-medium py-3.5 px-6 rounded-lg
                        focus:outline-none focus:ring-2 focus:ring-indigo-500 
                        focus:ring-offset-2 transition-all  duration-200 
-                       shadow-md hover:shadow-lg active:scale-[0.98]"
+                       shadow-md hover:shadow-lg active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Submit Information
             </button>
