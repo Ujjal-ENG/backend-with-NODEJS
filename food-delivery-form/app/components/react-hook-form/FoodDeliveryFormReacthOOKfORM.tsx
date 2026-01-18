@@ -79,7 +79,7 @@ export default function FoodDeliveryFormReactHookForm() {
           {/* Submit */}
           <div className="pt-4">
             <button
-              disabled={!isValid || isSubmitting || isSubmitted}
+              disabled={!isValid || isSubmitting || isSubmitSuccessful}
               type="submit"
               className="w-full bg-indigo-600 hover:bg-indigo-700 
                        text-white font-medium py-3.5 px-6 rounded-lg
