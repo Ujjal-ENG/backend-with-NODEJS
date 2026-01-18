@@ -5,7 +5,7 @@ type FoodDeliveryFormProps = {
   customerName: string;
   mobile: number;
 };
-export default function FoodDeliveryForm() {
+export default function FoodDeliveryFormTypical() {
   const [values, setValue] = useState<FoodDeliveryFormProps>({
     customerName: "",
     mobile: 0,
@@ -24,6 +24,7 @@ export default function FoodDeliveryForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+      <h3 className="text-2xl">Typical Form</h3>
       <form onSubmit={onSubmit}>
         {/* Customer Name */}
         <div>
@@ -82,7 +83,7 @@ export default function FoodDeliveryForm() {
             className="w-full bg-indigo-600 hover:bg-indigo-700 
                        text-white font-medium py-3.5 px-6 rounded-lg
                        focus:outline-none focus:ring-2 focus:ring-indigo-500 
-                       focus:ring-offset-2 transition-all duration-200 
+                       focus:ring-offset-2 transition-all  duration-200 
                        shadow-md hover:shadow-lg active:scale-[0.98]"
           >
             Submit Information
