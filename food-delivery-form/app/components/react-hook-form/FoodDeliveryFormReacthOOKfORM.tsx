@@ -11,6 +11,7 @@ import {
 import { AddressSection } from "./AddressSection";
 import { CheckoutSection } from "./CheckoutSection";
 import { FoodDeliveryMaster } from "./FoodDeliveryMaster";
+import FoodItems from "./FoodItems";
 import { FoodDeliveryFormProps } from "./types";
 
 const orderPaymentOptions = [
@@ -36,6 +37,13 @@ export default function FoodDeliveryFormReactHookForm() {
         email: "",
         orderPaymentOption: "",
         deliveryType: "",
+        foodItems: [
+          {
+            name: "",
+            quantity: 1,
+            price: 0,
+          },
+        ],
         address: {
           streetAddress: "",
           landmark: "",
@@ -94,6 +102,13 @@ export default function FoodDeliveryFormReactHookForm() {
               <Grid container spacing={2}>
                 <AddressSection />
               </Grid>
+            </section>
+
+            <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                FoodItems
+              </div>
+              <FoodItems />
             </section>
 
             <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">

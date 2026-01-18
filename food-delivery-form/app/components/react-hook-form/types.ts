@@ -11,4 +11,11 @@ export type FoodDeliveryFormProps = {
     city: string;
     state: string;
   };
+  foodItems: FoodItemType[];
+};
+
+export type FoodItemType = {
+  name: string;
+  quantity: number;
+  price: number;
 };
