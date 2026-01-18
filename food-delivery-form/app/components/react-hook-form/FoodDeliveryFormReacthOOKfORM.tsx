@@ -1,15 +1,31 @@
 "use client";
 
+import { getRenderCount } from "@/app/utils/useRenderCount";
+import { TextField } from "@mui/material";
+import { Controller, useForm } from "react-hook-form";
+
 type FoodDeliveryFormProps = {
   customerName: string;
   mobile: number;
 };
+
+const renderCount = getRenderCount();
 export default function FoodDeliveryFormReactHookForm() {
+  const { control, handleSubmit } = useForm<FoodDeliveryFormProps>({
+    defaultValues: {
+      customerName: "Hello World",
+      mobile: 2154,
+    },
+  });
+  const onSubmit = (data: FoodDeliveryFormProps) => {
+    console.log(data);
+  };
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex flex-col w-full min-h-screen items-center justify-center bg-zinc-50 font-sans ">
       <h3 className="text-2xl">React Hook Form</h3>
+      {renderCount()}
       <br />
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         {/* Customer Name */}
         <div>
           <label
@@ -18,16 +34,21 @@ export default function FoodDeliveryFormReactHookForm() {
           >
             Customer Name <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
-            id="customerName"
-            required
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 
-                       focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
-                       outline-none transition-all duration-200 
-                       placeholder-gray-400 shadow-sm"
-            placeholder="Enter full name"
+          <Controller
+            name="customerName"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                required
+                id="outlined-required"
+                label="Required"
+                {...field}
+              />
+            )}
           />
+          <p className="mt-1.5 text-xs text-gray-500">
+            We&apos;ll use this name to contact you
+          </p>
         </div>
 
         {/* Mobile */}
@@ -38,16 +59,20 @@ export default function FoodDeliveryFormReactHookForm() {
           >
             Mobile Number <span className="text-red-500">*</span>
           </label>
-          <input
-            type="tel"
-            id="mobile"
-            pattern="[0-9]{10,15}"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 
-                       focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
-                       outline-none transition-all duration-200 
-                       placeholder-gray-400 shadow-sm"
-            placeholder="01XXXXXXXXX"
+          <Controller
+            name="mobile"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                required
+                id="outlined-required"
+                label="Required"
+                type="number"
+                {...field}
+              />
+            )}
           />
+
           <p className="mt-1.5 text-xs text-gray-500">
             We&apos;ll use this number to contact you
           </p>

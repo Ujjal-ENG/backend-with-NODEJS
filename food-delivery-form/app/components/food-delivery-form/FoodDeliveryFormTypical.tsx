@@ -1,10 +1,13 @@
 "use client";
+
+import { getRenderCount } from "@/app/utils/useRenderCount";
 import { ChangeEvent, SyntheticEvent, useState } from "react";
 
 type FoodDeliveryFormProps = {
   customerName: string;
   mobile: number;
 };
+const renderCount = getRenderCount();
 export default function FoodDeliveryFormTypical() {
   const [values, setValue] = useState<FoodDeliveryFormProps>({
     customerName: "",
@@ -23,8 +26,9 @@ export default function FoodDeliveryFormTypical() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <h3 className="text-2xl">Typical Form</h3>
+    <div className="flex flex-col min-h-screen items-center justify-center bg-zinc-50 font-sans ">
+      <h3 className="text-2xl text-black">Typical Form</h3>
+      {renderCount()}
       <br />
       <form onSubmit={onSubmit}>
         {/* Customer Name */}
