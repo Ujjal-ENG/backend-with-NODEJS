@@ -49,7 +49,7 @@ export default function FoodDeliveryFormReactHookForm() {
   const {
     handleSubmit,
     reset,
-    getValues,
+    setValue,
     formState: { isValid, isSubmitSuccessful, isSubmitting },
   } = methods;
   const onSubmit = async (data: FoodDeliveryFormProps) => {
@@ -60,7 +60,7 @@ export default function FoodDeliveryFormReactHookForm() {
 
   const onError = (error: FieldErrors) => {
     console.log(error);
-    console.log(getValues("mobile"));
+    setValue("customerName", "Ujjal");
   };
 
   return (
