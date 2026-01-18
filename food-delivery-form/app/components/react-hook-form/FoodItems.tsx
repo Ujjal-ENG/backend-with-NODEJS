@@ -70,7 +70,7 @@ export default function FoodItems() {
                   fullWidth
                 />
               </Grid>
-              <Grid xs={6} sm={3}>
+              <Grid sx={{ xs: 6, sm: 3 }}>
                 <FormTextField
                   name={`foodItems.${index}.quantity`}
                   control={control}
@@ -83,7 +83,7 @@ export default function FoodItems() {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid sx={{ xs: 6, sm: 3 }}>
                 <FormTextField
                   name={`foodItems.${index}.price`}
                   control={control}
