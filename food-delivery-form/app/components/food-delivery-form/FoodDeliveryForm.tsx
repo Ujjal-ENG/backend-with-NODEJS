@@ -26,6 +26,10 @@ export default function FoodDeliveryForm() {
             type="text"
             id="customerName"
             name="customerName"
+            value={values?.customerName}
+            onChange={(e) =>
+              setValue({ ...values, customerName: e.target.value })
+            }
             required
             className="w-full px-4 py-3 rounded-lg border border-gray-300 
                        focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
@@ -47,6 +51,8 @@ export default function FoodDeliveryForm() {
             type="tel"
             id="mobile"
             name="mobile"
+            value={values?.mobile}
+            onChange={(e) => setValue({ ...values, mobile: +e.target.value })}
             required
             pattern="[0-9]{10,15}"
             className="w-full px-4 py-3 rounded-lg border border-gray-300 
@@ -56,7 +62,7 @@ export default function FoodDeliveryForm() {
             placeholder="01XXXXXXXXX"
           />
           <p className="mt-1.5 text-xs text-gray-500">
-            We'll use this number to contact you
+            We&apos;ll use this number to contact you
           </p>
         </div>
 
