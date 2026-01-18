@@ -20,6 +20,7 @@ export default function FoodDeliveryFormReactHookForm() {
       orderNumber: "",
       email: "",
     },
+    mode: "onChange",
   });
   const onSubmit = (data: FoodDeliveryFormProps) => {
     console.log(data);
