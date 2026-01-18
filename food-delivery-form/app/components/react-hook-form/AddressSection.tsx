@@ -1,10 +1,14 @@
 import { getRenderCount } from "@/app/utils/useRenderCount";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useFormState } from "react-hook-form";
 import { FormTextField } from "./FormTextField";
 
 const RenderCount = getRenderCount();
 export const AddressSection = () => {
   const { control } = useFormContext();
+  const { errors } = useFormState({
+    name: ["address"],
+  });
+  console.log("errors from address section", errors);
   return (
     <>
       <div className="sm:col-span-2 text-black">Delivery Address</div>

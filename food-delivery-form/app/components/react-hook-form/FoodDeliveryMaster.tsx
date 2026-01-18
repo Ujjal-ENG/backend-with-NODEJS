@@ -9,7 +9,7 @@ export const FoodDeliveryMaster = () => {
   const { errors } = useFormState<FoodDeliveryMasterFormTypes>({
     name: ["customerName", "orderNumber", "mobile", "email"],
   });
-  console.log("errors", errors);
+  console.log("errors from food delivery master", errors);
   return (
     <>
       {/* Customer Name */}

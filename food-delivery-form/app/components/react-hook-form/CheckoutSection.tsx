@@ -1,5 +1,5 @@
 import { getRenderCount } from "@/app/utils/useRenderCount";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useFormState } from "react-hook-form";
 import { FormSelectField } from "./FormSelectField";
 
 type Option = {
@@ -19,6 +19,10 @@ export const CheckoutSection = ({
   deliveryOptions,
 }: CheckoutSectionProps) => {
   const { control } = useFormContext();
+  const { errors } = useFormState<CheckoutSectionProps>({
+    name: ["paymentOptions", "deliveryOptions"],
+  });
+  console.log("erros from checkout section ", errors);
   return (
     <div className="flex justify-between align-middle gap-2 mt-4">
       <RenderCount />
