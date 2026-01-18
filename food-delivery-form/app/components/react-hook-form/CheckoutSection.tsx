@@ -1,5 +1,6 @@
 import { getRenderCount } from "@/app/utils/useRenderCount";
-import { useFormContext, useFormState } from "react-hook-form";
+import { useEffect } from "react";
+import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { FormSelectField } from "./FormSelectField";
 
 type Option = {
@@ -23,6 +24,16 @@ export const CheckoutSection = ({
     name: ["paymentOptions", "deliveryOptions"],
     exact: true,
   });
+
+  const paymentType = useWatch({
+    control,
+    name: "orderPaymentOption",
+  });
+  useEffect(() => {
+    if (paymentType === "online") {
+      alert("Please verify the payment after the order is placed");
+    }
+  }, [paymentType]);
   console.log("erros from checkout section ", errors);
   return (
     <div className="flex justify-between align-middle gap-2 mt-4">
