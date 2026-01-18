@@ -54,7 +54,7 @@ export default function FoodDeliveryFormReactHookForm() {
   const onSubmit = async (data: FoodDeliveryFormProps) => {
     await new Promise((resolve) => setTimeout(resolve, 1400));
     console.log(data);
-    reset(data);
+    reset();
   };
 
   return (
