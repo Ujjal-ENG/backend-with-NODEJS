@@ -2,24 +2,11 @@
 
 import { getRenderCount } from "@/app/utils/useRenderCount";
 import { Grid } from "@mui/material";
-import { useForm } from "react-hook-form";
-import { FormSelectField } from "./FormSelectField";
+import { useForm, UseFormReturn } from "react-hook-form";
+import { AddressSection } from "./AddressSection";
+import { CheckoutSection } from "./CheckoutSection";
 import { FormTextField } from "./FormTextField";
-
-type FoodDeliveryFormProps = {
-  customerName: string;
-  mobile: number;
-  orderNumber: string;
-  email: string;
-  orderPaymentOption: string;
-  deliveryType: string;
-  address: {
-    streetAddress: string;
-    landmark: string;
-    city: string;
-    state: string;
-  };
-};
+import { FoodDeliveryFormProps } from "./types";
 
 const orderPaymentOptions = [
   { label: "Cash", value: "cash" },
@@ -35,23 +22,26 @@ const deliveryTypeOptions = [
 
 const RenderCount = getRenderCount();
 export default function FoodDeliveryFormReactHookForm() {
-  const { control, handleSubmit, getValues } = useForm<FoodDeliveryFormProps>({
-    defaultValues: {
-      customerName: "Hello World",
-      mobile: 2154,
-      orderNumber: "",
-      email: "",
-      orderPaymentOption: "",
-      deliveryType: "",
-      address: {
-        streetAddress: "",
-        landmark: "",
-        city: "",
-        state: "",
+  const methods: UseFormReturn<FoodDeliveryFormProps> =
+    useForm<FoodDeliveryFormProps>({
+      defaultValues: {
+        customerName: "Hello World",
+        mobile: 2154,
+        orderNumber: "",
+        email: "",
+        orderPaymentOption: "",
+        deliveryType: "",
+        address: {
+          streetAddress: "",
+          landmark: "",
+          city: "",
+          state: "",
+        },
       },
-    },
-    mode: "onChange",
-  });
+      mode: "onChange",
+    });
+
+  const { control, handleSubmit, getValues } = methods;
   const onSubmit = (data: FoodDeliveryFormProps) => {
     console.log(data);
   };
@@ -164,74 +154,13 @@ export default function FoodDeliveryFormReactHookForm() {
             />
           </div>
 
-          <br />
-          <div className="text-black">Delivery Address</div>
-          {/* Street Address */}
-          <div className="sm:col-span-2">
-            <FormTextField
-              name="address.streetAddress"
-              control={control}
-              label="Street Address"
-              rules={{ required: "Street address is required" }}
-            />
-          </div>
-
-          {/* Landmark */}
-          <div className="sm:col-span-2">
-            <FormTextField
-              name="address.landmark"
-              control={control}
-              label="Landmark"
-              rules={{
-                maxLength: {
-                  value: 100,
-                  message: "Landmark must be under 100 characters",
-                },
-              }}
-            />
-          </div>
-
-          {/* City */}
-          <div>
-            <FormTextField
-              name="address.city"
-              control={control}
-              label="City"
-              rules={{ required: "City is required" }}
-            />
-          </div>
-
-          {/* State */}
-          <div>
-            <FormTextField
-              name="address.state"
-              control={control}
-              label="State"
-              rules={{ required: "State is required" }}
-            />
-          </div>
-
-          {/* Order Payment Option */}
+          <AddressSection control={control} />
         </Grid>
-        <div className="flex justify-between align-middle gap-2 mt-4">
-          <FormSelectField
-            name="orderPaymentOption"
-            control={control}
-            label="Order Payment Option"
-            options={orderPaymentOptions}
-            rules={{ required: "Payment option is required" }}
-          />
-
-          {/* Delivery Type */}
-
-          <FormSelectField
-            name="deliveryType"
-            control={control}
-            label="Delivery Type"
-            options={deliveryTypeOptions}
-            rules={{ required: "Delivery type is required" }}
-          />
-        </div>
+        <CheckoutSection
+          control={control}
+          paymentOptions={orderPaymentOptions}
+          deliveryOptions={deliveryTypeOptions}
+        />
         {/* Submit */}
         <div className="pt-4">
           <button
