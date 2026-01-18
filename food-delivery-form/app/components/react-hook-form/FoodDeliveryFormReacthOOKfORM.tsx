@@ -13,15 +13,16 @@ type FoodDeliveryFormProps = {
 
 const RenderCount = getRenderCount();
 export default function FoodDeliveryFormReactHookForm() {
-  const { control, handleSubmit, formState } = useForm<FoodDeliveryFormProps>({
-    defaultValues: {
-      customerName: "Hello World",
-      mobile: 2154,
-      orderNumber: "",
-      email: "",
-    },
-    mode: "onChange",
-  });
+  const { control, handleSubmit, formState, reset } =
+    useForm<FoodDeliveryFormProps>({
+      defaultValues: {
+        customerName: "Hello World",
+        mobile: 2154,
+        orderNumber: "",
+        email: "",
+      },
+      mode: "onChange",
+    });
   const onSubmit = (data: FoodDeliveryFormProps) => {
     console.log(data);
   };
@@ -73,6 +74,16 @@ export default function FoodDeliveryFormReactHookForm() {
                   value: /^[A-Za-z0-9-]+$/,
                   message:
                     "Order number can only contain letters, numbers, or dashes",
+                },
+                validate: (value) => {
+                  const stringValue = String(value ?? "");
+                  if (stringValue.length < 4) {
+                    return "Order number must be at least 4 characters";
+                  }
+                  if (!/^[A-Za-z0-9-]+$/.test(stringValue)) {
+                    return "Order number can only contain letters, numbers, or dashes";
+                  }
+                  return true;
                 },
               }}
               render={({ field }) => (
@@ -133,6 +144,11 @@ export default function FoodDeliveryFormReactHookForm() {
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                   message: "Enter a valid email address",
+                },
+                validate: (value) => {
+                  if (!value.includes("@gmail.com")) {
+                    return "Please add valid email";
+                  }
                 },
               }}
               render={({ field }) => (
