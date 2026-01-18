@@ -1,16 +1,20 @@
 "use client";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 
 type FoodDeliveryFormProps = {
   customerName: string;
   mobile: number;
 };
-
 export default function FoodDeliveryForm() {
   const [values, setValue] = useState<FoodDeliveryFormProps>({
     customerName: "",
     mobile: 0,
   });
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setValue({ ...values, [name]: value });
+  };
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <form>
@@ -27,9 +31,7 @@ export default function FoodDeliveryForm() {
             id="customerName"
             name="customerName"
             value={values?.customerName}
-            onChange={(e) =>
-              setValue({ ...values, customerName: e.target.value })
-            }
+            onChange={handleChange}
             required
             className="w-full px-4 py-3 rounded-lg border border-gray-300 
                        focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
@@ -52,7 +54,7 @@ export default function FoodDeliveryForm() {
             id="mobile"
             name="mobile"
             value={values?.mobile}
-            onChange={(e) => setValue({ ...values, mobile: +e.target.value })}
+            onChange={handleChange}
             required
             pattern="[0-9]{10,15}"
             className="w-full px-4 py-3 rounded-lg border border-gray-300 
