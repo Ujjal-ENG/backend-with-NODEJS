@@ -10,6 +10,7 @@ export default function FoodItems() {
     name: "foodItems",
   });
 
+  console.log(fields);
   const handleAddItem = () =>
     append({
       name: "",
