@@ -5,7 +5,7 @@ import { z } from "zod";
 import { setAuthCookies, clearAuthCookies } from "@/lib/auth";
 import type { ApiResponse, AuthTokens } from "@/types/api";
 
-const API_BASE = process.env.API_BASE_URL || "http://localhost:3000";
+const API_BASE = process.env.API_BASE_URL || "http://localhost:4000";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
