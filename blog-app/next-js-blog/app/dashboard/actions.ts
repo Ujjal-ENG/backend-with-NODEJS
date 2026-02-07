@@ -69,7 +69,7 @@ export async function createPostAction(
       method: "POST",
       body: JSON.stringify(payload),
     });
-    revalidateTag("posts");
+    updateTag("posts");
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Failed to create post" };
   }
@@ -106,7 +106,7 @@ export async function updatePostAction(
       method: "PATCH",
       body: JSON.stringify(payload),
     });
-    revalidateTag("posts");
+    updateTag("posts");
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Failed to update post" };
   }
@@ -119,7 +119,7 @@ export async function deletePostAction(formData: FormData) {
   await apiFetch<{ deleted: boolean; message: string }>(`/posts/${id}`, {
     method: "DELETE",
   });
-  revalidateTag("posts");
+  updateTag("posts");
 }
 
 // === Tag Actions ===
@@ -169,7 +169,7 @@ export async function createTagAction(
       method: "POST",
       body: JSON.stringify(payload),
     });
-    revalidateTag("tags");
+    updateTag("tags");
     return { success: true };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Failed to create tag" };
@@ -181,5 +181,5 @@ export async function deleteTagAction(formData: FormData) {
   const soft = formData.get("soft") === "true";
   const endpoint = soft ? `/tags/soft-delete/${id}` : `/tags/${id}`;
   await apiFetch(endpoint, { method: "DELETE" });
-  revalidateTag("tags");
+  updateTag("tags");
 }
