@@ -76,6 +76,10 @@ export function SignInForm() {
               </>
             )}
           </Button>
+          <p className="rounded-md bg-muted p-2 text-xs text-muted-foreground">
+            Admin login (local): <strong>admin@blogapp.local</strong> /{" "}
+            <strong>123456</strong>
+          </p>
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link href="/sign-up" className="font-medium underline">
