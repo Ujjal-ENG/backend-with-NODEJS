@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getPosts } from "@/lib/api/posts";
+import { canManageTags } from "@/lib/abac";
+import { getSession } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -22,8 +25,13 @@ import type { Tag } from "@/types/entities";
 export const metadata: Metadata = { title: "Manage Tags" };
 
 export default async function TagsManagementPage() {
+  const session = await getSession();
+  if (!canManageTags(session)) {
+    redirect("/dashboard?forbidden=true");
+  }
+
   // Extract unique tags from posts since backend lacks GET /tags
-  let tagsMap = new Map<number, Tag>();
+  const tagsMap = new Map<number, Tag>();
   try {
     const result = await getPosts(1, 100);
     for (const post of result.data) {
