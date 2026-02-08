@@ -44,3 +44,9 @@ export interface SignUpPayload {
   email: string;
   password: string;
 }
+
+export interface RolePermissionCatalog {
+  roles: string[];
+  permissions: string[];
+  defaultRolePermissions: Record<string, string[]>;
+}
