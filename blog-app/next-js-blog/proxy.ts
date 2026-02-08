@@ -3,16 +3,27 @@ import { jwtDecode } from "jwt-decode";
 
 const protectedPaths = ["/dashboard"];
 const authPaths = ["/sign-in", "/sign-up"];
+const adminRole = "admin";
+const tagPermission = "tag:create:any";
+const rolePermissionPagePermissions = ["user:read:any", "user:update:any"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get("accessToken")?.value;
 
   let isAuthenticated = false;
+  let role = "user";
+  let permissions: string[] = [];
   if (accessToken) {
     try {
-      const decoded = jwtDecode<{ exp: number }>(accessToken);
+      const decoded = jwtDecode<{
+        exp: number;
+        role?: string;
+        permissions?: string[];
+      }>(accessToken);
       isAuthenticated = decoded.exp * 1000 > Date.now();
+      role = decoded.role ?? "user";
+      permissions = decoded.permissions ?? [];
     } catch {
       isAuthenticated = false;
     }
@@ -25,6 +36,26 @@ export function proxy(request: NextRequest) {
   }
 
   if (authPaths.some((p) => pathname.startsWith(p)) && isAuthenticated) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  if (
+    pathname.startsWith("/dashboard/tags") &&
+    isAuthenticated &&
+    role !== adminRole &&
+    !permissions.includes(tagPermission)
+  ) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  if (
+    pathname.startsWith("/dashboard/users") &&
+    isAuthenticated &&
+    role !== adminRole &&
+    !rolePermissionPagePermissions.every((permission) =>
+      permissions.includes(permission),
+    )
+  ) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
