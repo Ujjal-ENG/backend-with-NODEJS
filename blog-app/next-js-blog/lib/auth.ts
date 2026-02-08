@@ -1,12 +1,17 @@
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
+import { PermissionKey, UserRole } from "@/types/entities";
 
 interface JwtPayload {
   id: number;
   email: string;
+  role: UserRole;
+  permissions: PermissionKey[];
   iat: number;
   exp: number;
 }
+
+export type SessionUser = JwtPayload;
 
 export async function setAuthCookies(
   accessToken: string,
@@ -40,14 +45,18 @@ export async function clearAuthCookies() {
   cookieStore.delete("refreshToken");
 }
 
-export async function getSession(): Promise<JwtPayload | null> {
+export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
   if (!token) return null;
   try {
     const decoded = jwtDecode<JwtPayload>(token);
     if (decoded.exp * 1000 < Date.now()) return null;
-    return decoded;
+    return {
+      ...decoded,
+      role: decoded.role ?? UserRole.USER,
+      permissions: decoded.permissions ?? [],
+    };
   } catch {
     return null;
   }
