@@ -12,11 +12,27 @@ export enum PostStatus {
   PUBLISHED = "published",
 }
 
+export enum UserRole {
+  ADMIN = "admin",
+  EDITOR = "editor",
+  MANAGER = "manager",
+  USER = "user",
+}
+
+export type PermissionResource = "post" | "tag" | "customer" | "user";
+export type PermissionAction = "create" | "read" | "update" | "delete";
+export type PermissionPossession = "any" | "own";
+export type PermissionKey =
+  `${PermissionResource}:${PermissionAction}:${PermissionPossession}`;
+
 export interface User {
   id: number;
   firstName: string;
   lastName?: string;
   email: string;
+  role: UserRole;
+  permissions?: PermissionKey[];
+  effectivePermissions?: PermissionKey[];
   googleId?: string;
   posts?: Post[];
 }
@@ -68,9 +84,7 @@ export interface CreatePostPayload {
   metaOptions?: { metaValue: string };
 }
 
-export interface UpdatePostPayload extends Partial<CreatePostPayload> {
-  id: number;
-}
+export type UpdatePostPayload = Partial<CreatePostPayload>;
 
 export interface CreateTagPayload {
   name: string;
@@ -78,4 +92,10 @@ export interface CreateTagPayload {
   description?: string;
   schema?: string;
   featuredImageUrl?: string;
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+  slug: string;
 }
