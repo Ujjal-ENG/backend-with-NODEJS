@@ -1,0 +1,12 @@
+{
+  "name": "blog-app",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k -n backend,frontend -c cyan,green \"pnpm --dir nestjs-intro start:dev\" \"pnpm --dir next-js-blog dev\"",
+    "dev:backend": "pnpm --dir nestjs-intro start:dev",
+    "dev:frontend": "pnpm --dir next-js-blog dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
