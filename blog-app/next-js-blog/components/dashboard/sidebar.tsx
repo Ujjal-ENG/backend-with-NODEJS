@@ -3,16 +3,36 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { FileText, Home, Tags, PenLine } from "lucide-react";
+import { FileText, Home, ShieldCheck, Tags, PenLine } from "lucide-react";
 
-const navItems = [
+const baseNavItems = [
   { href: "/dashboard", label: "Overview", icon: Home },
   { href: "/dashboard/posts", label: "Posts", icon: FileText },
-  { href: "/dashboard/tags", label: "Tags", icon: Tags },
 ];
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+  canManageTags: boolean;
+  canManageUsers: boolean;
+}
+
+export function DashboardSidebar({
+  canManageTags,
+  canManageUsers,
+}: DashboardSidebarProps) {
   const pathname = usePathname();
+  const navItems = [...baseNavItems];
+
+  if (canManageTags) {
+    navItems.push({ href: "/dashboard/tags", label: "Tags", icon: Tags });
+  }
+
+  if (canManageUsers) {
+    navItems.push({
+      href: "/dashboard/users",
+      label: "Role Permissions",
+      icon: ShieldCheck,
+    });
+  }
 
   return (
     <aside className="hidden w-64 border-r bg-card md:block">
