@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { apiFetch } from "@/lib/api-client";
+import { notFound, redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
+import { canEditPost } from "@/lib/abac";
+import { getPostById } from "@/lib/api/posts";
+import { getTags } from "@/lib/api/tags";
 import { PostForm } from "@/components/dashboard/post-form";
-import type { Paginated } from "@/types/api";
-import type { Post } from "@/types/entities";
+import type { Post, Tag } from "@/types/entities";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -13,24 +15,26 @@ export const metadata: Metadata = { title: "Edit Post" };
 
 export default async function EditPostPage({ params }: Props) {
   const { id } = await params;
+  const session = await getSession();
+  if (!session) {
+    redirect("/sign-in");
+  }
 
-  let post: Post | undefined;
+  let post: Post;
+  let tags: Tag[] = [];
   try {
-    // Workaround: backend lacks GET /posts/:id for single post
-    const result = await apiFetch<Paginated<Post>>(
-      `/posts?page=1&limit=100`,
-      { tags: ["posts"] },
-    );
-    post = result.data.find((p) => p.id === Number(id));
+    [post, tags] = await Promise.all([getPostById(Number(id)), getTags()]);
   } catch {
     notFound();
   }
 
-  if (!post) notFound();
+  if (!canEditPost(session, post)) {
+    redirect("/dashboard/posts?forbidden=true");
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PostForm post={post} />
+      <PostForm post={post} tags={tags} />
     </div>
   );
 }
