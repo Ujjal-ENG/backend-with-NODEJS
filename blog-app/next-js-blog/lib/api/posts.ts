@@ -16,8 +16,14 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
   return result.data.find((p) => p.slug === slug) ?? null;
 }
 
+export async function getPostById(id: number): Promise<Post> {
+  return apiFetch<Post>(`/posts/${id}`, {
+    tags: ["posts", `post-${id}`],
+  });
+}
+
 export async function getPostsByUser(userId: number) {
-  return apiFetch<Post[]>(`/posts/${userId}`, {
+  return apiFetch<Post[]>(`/posts/user/${userId}`, {
     tags: ["posts", `user-posts-${userId}`],
   });
 }
