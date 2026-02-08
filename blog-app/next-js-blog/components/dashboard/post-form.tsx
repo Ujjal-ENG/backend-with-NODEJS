@@ -1,15 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
 import {
   createPostAction,
   updatePostAction,
   type PostActionState,
 } from "@/app/dashboard/actions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -17,26 +17,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import type { Post } from "@/types/entities";
-import { PostType, PostStatus } from "@/types/entities";
-import { Save } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import type { Post, Tag } from "@/types/entities";
+import { PostStatus, PostType } from "@/types/entities";
+import { Save, X } from "lucide-react";
+import { useActionState, useMemo, useState } from "react";
 
 interface PostFormProps {
   post?: Post;
+  tags?: Tag[];
 }
 
-export function PostForm({ post }: PostFormProps) {
+export function PostForm({ post, tags }: PostFormProps) {
   const action = post ? updatePostAction : createPostAction;
   const [state, formAction, isPending] = useActionState<
     PostActionState,
     FormData
   >(action, {});
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>(() =>
+    Array.from(new Set((post?.tags ?? []).map((tag) => tag.id))),
+  );
+  const [tagSelectKey, setTagSelectKey] = useState(0);
+
+  const selectedTagLabels = useMemo(() => {
+    const tagMap = new Map(
+      (tags ? tags : (post?.tags ?? [])).map((tag) => [tag.id, tag.name]),
+    );
+
+    return selectedTagIds.map((tagId) => ({
+      id: tagId,
+      name: tagMap.get(tagId) ?? `Tag #${tagId}`,
+    }));
+  }, [selectedTagIds, tags, post?.tags]);
+
+  const availableTags = useMemo(
+    () =>
+      (tags ? tags : (post?.tags ?? [])).filter(
+        (tag) => !selectedTagIds.includes(tag.id),
+      ),
+    [selectedTagIds, tags, post?.tags],
+  );
+
+  const addTag = (tagIdString: string) => {
+    const tagId = Number(tagIdString);
+    if (!Number.isFinite(tagId) || tagId <= 0) {
+      return;
+    }
+
+    setSelectedTagIds((current) =>
+      current.includes(tagId) ? current : [...current, tagId],
+    );
+    setTagSelectKey((current) => current + 1);
+  };
+
+  const removeTag = (tagId: number) => {
+    setSelectedTagIds((current) => current.filter((id) => id !== tagId));
+  };
+
+  console.log(selectedTagLabels);
 
   return (
     <Card>
@@ -164,15 +202,61 @@ export function PostForm({ post }: PostFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">Tag IDs (comma-separated)</Label>
-            <Input
-              id="tags"
-              name="tags"
-              defaultValue={post?.tags?.map((t) => t.id).join(",") || ""}
-              placeholder="1,2,3"
-            />
+            <Label htmlFor="tag-selector">Tags</Label>
+            {selectedTagIds.map((tagId) => (
+              <input key={tagId} type="hidden" name="tags" value={tagId} />
+            ))}
+
+            <Select
+              key={tagSelectKey}
+              onValueChange={addTag}
+              disabled={availableTags.length === 0}
+            >
+              <SelectTrigger id="tag-selector">
+                <SelectValue
+                  placeholder={
+                    availableTags.length > 0
+                      ? "Select tag to add"
+                      : "No more tags available"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTags.map((tag) => (
+                  <SelectItem key={tag.id} value={String(tag.id)}>
+                    {tag.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex flex-wrap gap-2">
+              {selectedTagLabels.length > 0 ? (
+                selectedTagLabels.map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant="secondary"
+                    className="gap-1 pr-1"
+                  >
+                    {tag.name}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag.id)}
+                      className="inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-muted"
+                      aria-label={`Remove ${tag.name}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No tags selected
+                </p>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Enter tag IDs separated by commas
+              Add tags from dropdown. Only selected tag IDs are submitted.
             </p>
           </div>
 
