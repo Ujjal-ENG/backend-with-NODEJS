@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { getPosts } from "@/lib/api/posts";
-import { Button } from "@/components/ui/button";
+import { DeletePostButton } from "@/components/dashboard/delete-post-button";
+import { EditPostModal } from "@/components/dashboard/edit-post-modal";
+import { PaginationControls } from "@/components/pagination-controls";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -11,10 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaginationControls } from "@/components/pagination-controls";
-import { DeletePostButton } from "@/components/dashboard/delete-post-button";
-import { Plus, Pencil } from "lucide-react";
+import { canCreatePost, canDeletePost, canEditPost } from "@/lib/abac";
+import { getPosts } from "@/lib/api/posts";
+import { getSession } from "@/lib/auth";
+import { Plus } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Manage Posts" };
 
@@ -25,6 +28,8 @@ interface Props {
 export default async function PostsManagementPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = Number(params.page) || 1;
+  const session = await getSession();
+  const canCreate = canCreatePost(session);
 
   let result;
   try {
@@ -46,12 +51,14 @@ export default async function PostsManagementPage({ searchParams }: Props) {
             {result.meta.totalItems} total posts
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/posts/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Post
-          </Link>
-        </Button>
+        {canCreate ? (
+          <Button asChild>
+            <Link href="/dashboard/posts/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Post
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       <Card>
@@ -79,7 +86,7 @@ export default async function PostsManagementPage({ searchParams }: Props) {
               ) : (
                 result.data.map((post) => (
                   <TableRow key={post.id}>
-                    <TableCell className="max-w-[250px] truncate font-medium">
+                    <TableCell className="max-w-62.5 truncate font-medium">
                       {post.title}
                     </TableCell>
                     <TableCell>
@@ -91,22 +98,23 @@ export default async function PostsManagementPage({ searchParams }: Props) {
                         {post.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="capitalize">{post.postType}</TableCell>
+                    <TableCell className="capitalize">
+                      {post.postType}
+                    </TableCell>
                     <TableCell>
                       {new Date(post.publishedOn).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/dashboard/posts/${post.id}/edit`}>
-                            <Pencil className="mr-1 h-3 w-3" />
-                            Edit
-                          </Link>
-                        </Button>
-                        <DeletePostButton
-                          postId={post.id}
-                          postTitle={post.title}
-                        />
+                        {canEditPost(session, post) ? (
+                          <EditPostModal post={post} />
+                        ) : null}
+                        {canDeletePost(session, post) ? (
+                          <DeletePostButton
+                            postId={post.id}
+                            postTitle={post.title}
+                          />
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>
