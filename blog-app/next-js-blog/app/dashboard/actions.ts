@@ -3,7 +3,14 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import {
+  canCreatePost,
+  canDeletePost,
+  canEditPost,
+  canManageTags,
+} from "@/lib/abac";
 import { apiFetch } from "@/lib/api-client";
+import { getSession } from "@/lib/auth";
 import type {
   Post,
   CreatePostPayload,
@@ -32,7 +39,6 @@ const postSchema = z.object({
   schema: z.string().optional().or(z.literal("")),
   featuredImageUrl: z.string().url().max(1024).optional().or(z.literal("")),
   publishedOn: z.string().optional(),
-  tags: z.string().optional(),
 });
 
 export type PostActionState = {
@@ -45,23 +51,32 @@ export async function createPostAction(
   prevState: PostActionState,
   formData: FormData,
 ): Promise<PostActionState> {
-  const raw = Object.fromEntries(formData);
+  const session = await getSession();
+  if (!canCreatePost(session)) {
+    return { error: "You are not allowed to create posts" };
+  }
+
+  const raw = Object.fromEntries(
+    Array.from(formData.entries()).filter(([key]) => key !== "tags"),
+  );
   const parsed = postSchema.safeParse(raw);
   if (!parsed.success) {
     return { fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
-  const { tags: tagStr, featuredImageUrl, content, schema, ...rest } =
-    parsed.data;
+  const selectedTagIds = formData
+    .getAll("tags")
+    .map((tagId) => Number(tagId))
+    .filter((tagId) => Number.isFinite(tagId) && tagId > 0);
+
+  const { featuredImageUrl, content, schema, ...rest } = parsed.data;
   const payload: CreatePostPayload = {
     ...rest,
     publishedOn: rest.publishedOn || new Date().toISOString(),
     ...(content && content.length >= 10 ? { content } : {}),
     ...(schema ? { schema } : {}),
     ...(featuredImageUrl ? { featuredImageUrl } : {}),
-    ...(tagStr
-      ? { tags: tagStr.split(",").map(Number).filter(Boolean) }
-      : {}),
+    ...(selectedTagIds.length > 0 ? { tags: selectedTagIds } : {}),
   };
 
   try {
@@ -82,23 +97,46 @@ export async function updatePostAction(
   formData: FormData,
 ): Promise<PostActionState> {
   const id = Number(formData.get("id"));
-  const raw = Object.fromEntries(formData);
+  const session = await getSession();
+  if (!session) {
+    return { error: "You are not authenticated" };
+  }
+
+  if (!Number.isFinite(id) || id <= 0) {
+    return { error: "Invalid post id" };
+  }
+
+  let post: Post;
+  try {
+    post = await apiFetch<Post>(`/posts/${id}`);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to load post" };
+  }
+
+  if (!canEditPost(session, post)) {
+    return { error: "You are not allowed to update this post" };
+  }
+
+  const raw = Object.fromEntries(
+    Array.from(formData.entries()).filter(([key]) => key !== "tags"),
+  );
   const parsed = postSchema.safeParse(raw);
   if (!parsed.success) {
     return { fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
-  const { tags: tagStr, featuredImageUrl, content, schema, ...rest } =
-    parsed.data;
+  const selectedTagIds = formData
+    .getAll("tags")
+    .map((tagId) => Number(tagId))
+    .filter((tagId) => Number.isFinite(tagId) && tagId > 0);
+
+  const { featuredImageUrl, content, schema, ...rest } = parsed.data;
   const payload: UpdatePostPayload = {
-    id,
     ...rest,
     ...(content && content.length >= 10 ? { content } : {}),
     ...(schema ? { schema } : {}),
     ...(featuredImageUrl ? { featuredImageUrl } : {}),
-    ...(tagStr
-      ? { tags: tagStr.split(",").map(Number).filter(Boolean) }
-      : {}),
+    ...(selectedTagIds.length > 0 ? { tags: selectedTagIds } : {}),
   };
 
   try {
@@ -116,6 +154,19 @@ export async function updatePostAction(
 
 export async function deletePostAction(formData: FormData) {
   const id = Number(formData.get("id"));
+  const session = await getSession();
+  if (!session) {
+    throw new Error("You are not authenticated");
+  }
+  if (!Number.isFinite(id) || id <= 0) {
+    throw new Error("Invalid post id");
+  }
+
+  const post = await apiFetch<Post>(`/posts/${id}`);
+  if (!canDeletePost(session, post)) {
+    throw new Error("You are not allowed to delete this post");
+  }
+
   await apiFetch<{ deleted: boolean; message: string }>(`/posts/${id}`, {
     method: "DELETE",
   });
@@ -150,6 +201,11 @@ export async function createTagAction(
   prevState: TagActionState,
   formData: FormData,
 ): Promise<TagActionState> {
+  const session = await getSession();
+  if (!canManageTags(session)) {
+    return { error: "You are not allowed to manage tags" };
+  }
+
   const raw = Object.fromEntries(formData);
   const parsed = tagSchema.safeParse(raw);
   if (!parsed.success) {
@@ -177,6 +233,11 @@ export async function createTagAction(
 }
 
 export async function deleteTagAction(formData: FormData) {
+  const session = await getSession();
+  if (!canManageTags(session)) {
+    throw new Error("You are not allowed to manage tags");
+  }
+
   const id = Number(formData.get("id"));
   const soft = formData.get("soft") === "true";
   const endpoint = soft ? `/tags/soft-delete/${id}` : `/tags/${id}`;
