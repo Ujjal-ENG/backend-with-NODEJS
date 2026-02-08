@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { canCreatePost, canEditPost } from "@/lib/abac";
 import { getPosts } from "@/lib/api/posts";
+import { getSession } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -14,6 +16,8 @@ import { FileText, Plus, ArrowRight } from "lucide-react";
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
+  const session = await getSession();
+  const canCreate = canCreatePost(session);
   let totalPosts = 0;
   let recentPosts: Awaited<ReturnType<typeof getPosts>>["data"] = [];
 
@@ -34,12 +38,14 @@ export default async function DashboardPage() {
             Manage your blog content
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/posts/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Post
-          </Link>
-        </Button>
+        {canCreate ? (
+          <Button asChild>
+            <Link href="/dashboard/posts/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Post
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -94,9 +100,11 @@ export default async function DashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/posts/${post.id}/edit`}>Edit</Link>
-                  </Button>
+                  {canEditPost(session, post) ? (
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/dashboard/posts/${post.id}/edit`}>Edit</Link>
+                    </Button>
+                  ) : null}
                 </div>
               ))}
             </div>
