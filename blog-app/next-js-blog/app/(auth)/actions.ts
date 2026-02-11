@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { setAuthCookies, clearAuthCookies } from "@/lib/auth";
@@ -100,6 +101,23 @@ export async function signUpAction(
 }
 
 export async function signOutAction() {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+
+  if (accessToken) {
+    try {
+      await fetch(`${API_BASE}/users/presence/offline`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      });
+    } catch {
+      // Ignore errors during sign-out cleanup
+    }
+  }
+
   await clearAuthCookies();
   redirect("/sign-in");
 }
