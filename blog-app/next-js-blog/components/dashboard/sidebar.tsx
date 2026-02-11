@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { FileText, Home, ShieldCheck, Tags, PenLine } from "lucide-react";
+import {
+  Activity,
+  FileText,
+  Home,
+  ShieldCheck,
+  Tags,
+  PenLine,
+} from "lucide-react";
 
 const baseNavItems = [
   { href: "/dashboard", label: "Overview", icon: Home },
@@ -27,6 +34,11 @@ export function DashboardSidebar({
   }
 
   if (canManageUsers) {
+    navItems.push({
+      href: "/dashboard/presence",
+      label: "Online Users",
+      icon: Activity,
+    });
     navItems.push({
       href: "/dashboard/users",
       label: "Role Permissions",
