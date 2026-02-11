@@ -48,15 +48,20 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  if (
-    pathname.startsWith("/dashboard/users") &&
-    isAuthenticated &&
-    role !== adminRole &&
-    !rolePermissionPagePermissions.every((permission) =>
-      permissions.includes(permission),
-    )
-  ) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  const needsUserManagementAccess =
+    pathname.startsWith("/dashboard/users") ||
+    pathname.startsWith("/dashboard/presence");
+
+  if (needsUserManagementAccess && isAuthenticated) {
+    const hasUserManagementAccess =
+      role === adminRole ||
+      rolePermissionPagePermissions.every((permission) =>
+        permissions.includes(permission),
+      );
+
+    if (!hasUserManagementAccess) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
   }
 
   return NextResponse.next();
