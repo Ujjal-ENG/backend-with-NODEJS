@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import type { ApiResponse } from "@/types/api";
+import { toApiRequestError } from "@/lib/api-error";
 
 const BASE_URL = process.env.API_BASE_URL || "http://localhost:4000";
 
@@ -35,9 +36,9 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
-    const errorBody = await res.json().catch(() => null);
-    throw new Error(
-      errorBody?.message || `API error: ${res.status} ${res.statusText}`,
+    throw await toApiRequestError(
+      res,
+      `API error: ${res.status} ${res.statusText}`,
     );
   }
 
