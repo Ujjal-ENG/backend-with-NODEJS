@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { PresenceTable } from "@/components/dashboard/presence-table";
 import { canManageUsers } from "@/lib/abac";
 import { getPostCreatorsPresence } from "@/lib/api/presence";
 import { getSession } from "@/lib/auth";
 import type { PostCreatorPresenceView } from "@/types/api";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Online Users" };
 
@@ -29,6 +29,7 @@ export default async function PresencePage() {
 
   try {
     initialPresence = await getPostCreatorsPresence();
+    console.log(initialPresence);
   } catch (error) {
     initialError =
       error instanceof Error ? error.message : "Failed to load online status";
@@ -42,7 +43,10 @@ export default async function PresencePage() {
           Live status for admins and users who can create posts.
         </p>
       </div>
-      <PresenceTable initialData={initialPresence} initialError={initialError} />
+      <PresenceTable
+        initialData={initialPresence}
+        initialError={initialError}
+      />
     </div>
   );
 }
