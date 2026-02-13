@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ApiRequestError } from "@/lib/api-error";
 import { markPresenceOffline } from "@/lib/api/presence";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,21 @@ export async function POST() {
     const presence = await markPresenceOffline();
     return NextResponse.json(presence);
   } catch (error) {
+    if (error instanceof ApiRequestError) {
+      return NextResponse.json(
+        {
+          message: error.message,
+        },
+        {
+          status: error.status,
+          headers:
+            typeof error.retryAfterSeconds === "number"
+              ? { "Retry-After": String(error.retryAfterSeconds) }
+              : undefined,
+        },
+      );
+    }
+
     return NextResponse.json(
       {
         message:
