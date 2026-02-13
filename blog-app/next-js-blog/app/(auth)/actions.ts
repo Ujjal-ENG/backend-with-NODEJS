@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { toApiRequestError } from "@/lib/api-error";
 import { setAuthCookies, clearAuthCookies } from "@/lib/auth";
 import type { ApiResponse, AuthTokens } from "@/types/api";
 
@@ -53,8 +54,8 @@ export async function signInAction(
     });
 
     if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      return { error: body?.message || "Invalid credentials" };
+      const apiError = await toApiRequestError(res, "Invalid credentials");
+      return { error: apiError.message };
     }
 
     const json: ApiResponse<AuthTokens> = await res.json();
@@ -90,8 +91,8 @@ export async function signUpAction(
     });
 
     if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      return { error: body?.message || "Registration failed" };
+      const apiError = await toApiRequestError(res, "Registration failed");
+      return { error: apiError.message };
     }
   } catch {
     return { error: "Something went wrong. Please try again." };
