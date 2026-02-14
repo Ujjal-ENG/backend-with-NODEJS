@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
-import { PermissionKey, UserRole } from "@/types/entities";
+import { PermissionKey, UserPlan, UserRole } from "@/types/entities";
 
 interface JwtPayload {
   id: number;
   email: string;
   role: UserRole;
+  plan?: UserPlan;
   permissions: PermissionKey[];
   iat: number;
   exp: number;
@@ -55,6 +56,7 @@ export async function getSession(): Promise<SessionUser | null> {
     return {
       ...decoded,
       role: decoded.role ?? UserRole.USER,
+      plan: decoded.plan ?? UserPlan.FREE,
       permissions: decoded.permissions ?? [],
     };
   } catch {
