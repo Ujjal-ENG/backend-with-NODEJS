@@ -15,6 +15,7 @@ import {
 import { canCreatePost, canDeletePost, canEditPost } from "@/lib/abac";
 import { getPosts } from "@/lib/api/posts";
 import { getSession } from "@/lib/auth";
+import { UserPlan, UserRole } from "@/types/entities";
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -30,6 +31,8 @@ export default async function PostsManagementPage({ searchParams }: Props) {
   const page = Number(params.page) || 1;
   const session = await getSession();
   const canCreate = canCreatePost(session);
+  const isFreeReadOnlyUser =
+    session?.role === UserRole.USER && session.plan === UserPlan.FREE;
 
   let result;
   try {
@@ -50,6 +53,12 @@ export default async function PostsManagementPage({ searchParams }: Props) {
           <p className="text-sm text-muted-foreground">
             {result.meta.totalItems} total posts
           </p>
+          {isFreeReadOnlyUser ? (
+            <p className="text-xs text-muted-foreground">
+              Free plan: you can create up to 5 posts per day, and existing
+              posts are read-only.
+            </p>
+          ) : null}
         </div>
         {canCreate ? (
           <Button asChild>
