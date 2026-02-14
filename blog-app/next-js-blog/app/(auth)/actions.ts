@@ -1,11 +1,11 @@
 "use server";
 
+import { toApiRequestError } from "@/lib/api-error";
+import { clearAuthCookies, setAuthCookies } from "@/lib/auth";
+import type { ApiResponse, AuthTokens } from "@/types/api";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { toApiRequestError } from "@/lib/api-error";
-import { setAuthCookies, clearAuthCookies } from "@/lib/auth";
-import type { ApiResponse, AuthTokens } from "@/types/api";
 
 const API_BASE = process.env.API_BASE_URL || "http://localhost:4000";
 
@@ -53,6 +53,7 @@ export async function signInAction(
       cache: "no-store",
     });
 
+    console.log("Sign-in response status:", res);
     if (!res.ok) {
       const apiError = await toApiRequestError(res, "Invalid credentials");
       return { error: apiError.message };
