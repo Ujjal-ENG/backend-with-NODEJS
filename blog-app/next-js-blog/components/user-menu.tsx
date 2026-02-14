@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { signOutAction } from "@/app/(auth)/actions";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { CreditCard, LayoutDashboard, LogOut } from "lucide-react";
 
 export function UserMenu({ email }: { email: string }) {
   return (
@@ -31,6 +31,12 @@ export function UserMenu({ email }: { email: string }) {
           <Link href="/dashboard" className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4" />
             Dashboard
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/pricing" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Plans & Pricing
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
