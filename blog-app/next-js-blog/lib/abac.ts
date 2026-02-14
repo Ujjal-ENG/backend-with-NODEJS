@@ -1,6 +1,7 @@
 import type { SessionUser } from "@/lib/auth";
 import type { Post } from "@/types/entities";
 import {
+  UserPlan,
   UserRole,
   type PermissionAction,
   type PermissionResource,
@@ -49,6 +50,10 @@ export function canEditPost(
   session: SessionUser | null,
   post: Pick<Post, "author">,
 ): boolean {
+  if (session?.role === UserRole.USER && session.plan === UserPlan.FREE) {
+    return false;
+  }
+
   return can(session, {
     resource: "post",
     action: "update",
@@ -61,6 +66,10 @@ export function canDeletePost(
   session: SessionUser | null,
   post: Pick<Post, "author">,
 ): boolean {
+  if (session?.role === UserRole.USER && session.plan === UserPlan.FREE) {
+    return false;
+  }
+
   return can(session, {
     resource: "post",
     action: "delete",
