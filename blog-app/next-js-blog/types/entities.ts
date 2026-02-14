@@ -19,6 +19,12 @@ export enum UserRole {
   USER = "user",
 }
 
+export enum UserPlan {
+  FREE = "free",
+  PRO = "pro",
+  BUSINESS = "business",
+}
+
 export type PermissionResource = "post" | "tag" | "customer" | "user";
 export type PermissionAction = "create" | "read" | "update" | "delete";
 export type PermissionPossession = "any" | "own";
@@ -31,6 +37,7 @@ export interface User {
   lastName?: string;
   email: string;
   role: UserRole;
+  plan?: UserPlan;
   permissions?: PermissionKey[];
   effectivePermissions?: PermissionKey[];
   googleId?: string;
@@ -92,10 +99,4 @@ export interface CreateTagPayload {
   description?: string;
   schema?: string;
   featuredImageUrl?: string;
-}
-
-export interface Tag {
-  id: number;
-  name: string;
-  slug: string;
 }
