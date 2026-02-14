@@ -1,4 +1,4 @@
-import type { PermissionKey, UserRole } from "@/types/entities";
+import type { PermissionKey, UserPlan, UserRole } from "@/types/entities";
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -77,4 +77,19 @@ export interface RolePermissionCatalog {
   roles: string[];
   permissions: string[];
   defaultRolePermissions: Record<string, string[]>;
+}
+
+export interface CurrentUserPlan {
+  userId: number;
+  plan: UserPlan;
+  planLabel: string;
+  dailyPostCreationLimit: number | null;
+  canEditPosts: boolean;
+  apiRateLimitMultiplier: number;
+  postCreationBurstLimit: number;
+}
+
+export interface PurchasePlanResult extends CurrentUserPlan {
+  changed: boolean;
+  message: string;
 }
