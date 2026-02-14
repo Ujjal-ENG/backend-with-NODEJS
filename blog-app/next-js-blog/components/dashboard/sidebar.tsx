@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   Activity,
+  CreditCard,
   FileText,
   Home,
   ShieldCheck,
@@ -15,6 +16,7 @@ import {
 const baseNavItems = [
   { href: "/dashboard", label: "Overview", icon: Home },
   { href: "/dashboard/posts", label: "Posts", icon: FileText },
+  { href: "/dashboard/pricing", label: "Plans & Pricing", icon: CreditCard },
 ];
 
 interface DashboardSidebarProps {
