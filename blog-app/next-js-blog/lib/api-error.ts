@@ -46,9 +46,7 @@ const getMessageFromBody = (body: ApiErrorBody | null): string | undefined => {
   return undefined;
 };
 
-export function getRetryAfterSeconds(
-  headers: Headers,
-): number | undefined {
+export function getRetryAfterSeconds(headers: Headers): number | undefined {
   const retryAfterHeader = headers.get("retry-after");
   if (!retryAfterHeader) {
     return undefined;
@@ -68,9 +66,7 @@ export function getRetryAfterSeconds(
   return undefined;
 }
 
-export function formatRateLimitMessage(
-  retryAfterSeconds?: number,
-): string {
+export function formatRateLimitMessage(retryAfterSeconds?: number): string {
   if (typeof retryAfterSeconds === "number" && retryAfterSeconds > 0) {
     return `Too many requests. Please try again in ${retryAfterSeconds} seconds.`;
   }
