@@ -1,6 +1,7 @@
 import { DeletePostButton } from "@/components/dashboard/delete-post-button";
 import { EditPostModal } from "@/components/dashboard/edit-post-modal";
 import { PaginationControls } from "@/components/pagination-controls";
+import { PostSearchBox } from "@/components/post-search-box";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,12 +24,13 @@ import Link from "next/link";
 export const metadata: Metadata = { title: "Manage Posts" };
 
 interface Props {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; search?: string }>;
 }
 
 export default async function PostsManagementPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = Number(params.page) || 1;
+  const search = params.search?.trim() || "";
   const session = await getSession();
   const canCreate = canCreatePost(session);
   const isFreeReadOnlyUser =
@@ -36,7 +38,7 @@ export default async function PostsManagementPage({ searchParams }: Props) {
 
   let result;
   try {
-    result = await getPosts(page, 10);
+    result = await getPosts(page, 10, { search });
   } catch {
     return (
       <div className="py-20 text-center text-muted-foreground">
@@ -70,6 +72,13 @@ export default async function PostsManagementPage({ searchParams }: Props) {
         ) : null}
       </div>
 
+      <PostSearchBox
+        className="max-w-lg"
+        initialQuery={search}
+        basePath="/dashboard/posts"
+        placeholder="Search posts..."
+      />
+
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -89,7 +98,9 @@ export default async function PostsManagementPage({ searchParams }: Props) {
                     colSpan={5}
                     className="py-8 text-center text-muted-foreground"
                   >
-                    No posts found. Create your first post!
+                    {search
+                      ? `No posts found for "${search}".`
+                      : "No posts found. Create your first post!"}
                   </TableCell>
                 </TableRow>
               ) : (
