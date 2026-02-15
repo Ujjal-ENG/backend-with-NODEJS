@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
-import type { ApiResponse } from "@/types/api";
 import { toApiRequestError } from "@/lib/api-error";
+import type { ApiResponse } from "@/types/api";
+import { cookies } from "next/headers";
 
 const BASE_URL = process.env.API_BASE_URL || "http://localhost:4000";
 
@@ -43,5 +43,6 @@ export async function apiFetch<T>(
   }
 
   const json: ApiResponse<T> = await res.json();
+
   return json.data;
 }
