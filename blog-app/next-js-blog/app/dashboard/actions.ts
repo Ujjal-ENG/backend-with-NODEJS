@@ -1,8 +1,5 @@
 "use server";
 
-import { updateTag } from "next/cache";
-import { redirect } from "next/navigation";
-import { z } from "zod";
 import {
   canCreatePost,
   canDeletePost,
@@ -12,12 +9,15 @@ import {
 import { apiFetch } from "@/lib/api-client";
 import { getSession } from "@/lib/auth";
 import type {
-  Post,
   CreatePostPayload,
-  UpdatePostPayload,
+  Post,
   Tag,
+  UpdatePostPayload,
 } from "@/types/entities";
-import { PostType, PostStatus } from "@/types/entities";
+import { PostStatus, PostType } from "@/types/entities";
+import { updateTag } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 
 // === Post Actions ===
 
@@ -28,7 +28,10 @@ const postSchema = z.object({
     .string()
     .min(3, "Slug must be at least 3 characters")
     .max(256)
-    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only"),
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Slug must be lowercase letters, numbers, and hyphens only",
+    ),
   status: z.nativeEnum(PostStatus),
   content: z
     .string()
@@ -177,10 +180,7 @@ export async function deletePostAction(formData: FormData) {
 
 const tagSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(256),
-  slug: z
-    .string()
-    .min(2, "Slug must be at least 2 characters")
-    .max(512),
+  slug: z.string().min(2, "Slug must be at least 2 characters").max(512),
   description: z
     .string()
     .min(10, "Description must be at least 10 characters")
