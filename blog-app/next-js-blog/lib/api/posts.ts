@@ -2,8 +2,25 @@ import { apiFetch } from "@/lib/api-client";
 import type { Paginated } from "@/types/api";
 import type { Post } from "@/types/entities";
 
-export async function getPosts(page = 1, limit = 10) {
-  return apiFetch<Paginated<Post>>(`/posts?page=${page}&limit=${limit}`, {
+interface GetPostsOptions {
+  search?: string;
+}
+
+export async function getPosts(
+  page = 1,
+  limit = 10,
+  options: GetPostsOptions = {},
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  if (options.search?.trim()) {
+    params.set("search", options.search.trim());
+  }
+
+  return apiFetch<Paginated<Post>>(`/posts?${params.toString()}`, {
     tags: ["posts"],
   });
 }
