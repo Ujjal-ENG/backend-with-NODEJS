@@ -10,18 +10,20 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PaginationControls } from "@/components/pagination-controls";
+import { PostSearchBox } from "@/components/post-search-box";
 import { Calendar, User } from "lucide-react";
 
 export const metadata: Metadata = { title: "Posts" };
 
 interface PostsPageProps {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; search?: string }>;
 }
 
 export default async function PostsPage({ searchParams }: PostsPageProps) {
   const params = await searchParams;
   const page = Number(params.page) || 1;
-  const result = await getPosts(page, 9);
+  const search = params.search?.trim() || "";
+  const result = await getPosts(page, 9, { search });
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -30,11 +32,23 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
         <p className="mt-2 text-lg text-muted-foreground">
           Explore our latest articles and stories
         </p>
+        <PostSearchBox
+          className="mt-6 max-w-xl"
+          initialQuery={search}
+          basePath="/posts"
+          placeholder="Search posts by title, content, slug, or tags..."
+          navigateSuggestionsToPost
+          postPathPrefix="/posts"
+        />
       </div>
 
       {result.data.length === 0 ? (
         <div className="py-20 text-center">
-          <p className="text-lg text-muted-foreground">No posts yet.</p>
+          <p className="text-lg text-muted-foreground">
+            {search
+              ? `No posts found for "${search}".`
+              : "No posts yet."}
+          </p>
         </div>
       ) : (
         <>
