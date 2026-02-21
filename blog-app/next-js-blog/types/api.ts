@@ -93,3 +93,31 @@ export interface PurchasePlanResult extends CurrentUserPlan {
   changed: boolean;
   message: string;
 }
+
+export interface RagDraftRequest {
+  topic: string;
+  tone?: string;
+  audience?: string;
+  language?: string;
+  length?: "short" | "medium" | "long";
+  existingDraft?: string;
+  focusKeywords?: string[];
+  preferredTagNames?: string[];
+}
+
+export interface RagDraftSource {
+  postId: number;
+  title: string;
+  slug: string;
+  snippet: string;
+  score: number;
+}
+
+export interface RagDraftResponse {
+  title: string;
+  outline: string[];
+  draft: string;
+  retrievedSources: RagDraftSource[];
+  reviewNotes: string[];
+  iterations: number;
+}
