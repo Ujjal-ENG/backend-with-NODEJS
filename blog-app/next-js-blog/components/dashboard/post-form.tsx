@@ -18,9 +18,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type { RagDraftResponse } from "@/types/api";
 import type { Post, Tag } from "@/types/entities";
 import { PostStatus, PostType } from "@/types/entities";
-import { Save, X } from "lucide-react";
+import { Save, Sparkles, X } from "lucide-react";
 import { useActionState, useMemo, useState } from "react";
 
 interface PostFormProps {
@@ -38,6 +39,16 @@ export function PostForm({ post, tags }: PostFormProps) {
     Array.from(new Set((post?.tags ?? []).map((tag) => tag.id))),
   );
   const [tagSelectKey, setTagSelectKey] = useState(0);
+  const [titleValue, setTitleValue] = useState(post?.title ?? "");
+  const [contentValue, setContentValue] = useState(post?.content ?? "");
+  const [aiTopic, setAiTopic] = useState(post?.title ?? "");
+  const [aiTone, setAiTone] = useState("practical and clear");
+  const [aiAudience, setAiAudience] = useState("বাংলা ব্লগ পাঠক");
+  const [aiKeywords, setAiKeywords] = useState("");
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiReviewNotes, setAiReviewNotes] = useState<string[]>([]);
+  const [aiSourcesUsed, setAiSourcesUsed] = useState<number>(0);
 
   const selectedTagLabels = useMemo(() => {
     const tagMap = new Map(
@@ -74,7 +85,79 @@ export function PostForm({ post, tags }: PostFormProps) {
     setSelectedTagIds((current) => current.filter((id) => id !== tagId));
   };
 
-  console.log(selectedTagLabels);
+  const parseKeywords = (value: string): string[] =>
+    value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 10);
+
+  const handleGenerateDraft = async () => {
+    if (isGeneratingAi) {
+      return;
+    }
+
+    const topic = aiTopic.trim() || titleValue.trim();
+    if (topic.length < 5) {
+      setAiError("Topic কমপক্ষে ৫ অক্ষরের হতে হবে");
+      return;
+    }
+
+    setIsGeneratingAi(true);
+    setAiError(null);
+
+    try {
+      const response = await fetch("/api/posts/assist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic,
+          tone: aiTone.trim() || undefined,
+          audience: aiAudience.trim() || undefined,
+          language: "Bangla",
+          length:
+            contentValue.trim().length > 1800
+              ? "long"
+              : contentValue.trim().length > 600
+                ? "medium"
+                : "short",
+          existingDraft: contentValue.trim() || undefined,
+          focusKeywords: parseKeywords(aiKeywords),
+          preferredTagNames: selectedTagLabels.map((tag) => tag.name),
+        }),
+      });
+
+      const payload = (await response.json()) as
+        | RagDraftResponse
+        | { message?: string };
+
+      if (!response.ok) {
+        setAiError(
+          "message" in payload && payload.message
+            ? payload.message
+            : "Draft generate করতে সমস্যা হয়েছে",
+        );
+        return;
+      }
+
+      const generated = payload as RagDraftResponse;
+      setTitleValue(generated.title);
+      setContentValue(generated.draft);
+      setAiTopic(generated.title);
+      setAiReviewNotes(generated.reviewNotes ?? []);
+      setAiSourcesUsed(generated.retrievedSources?.length ?? 0);
+    } catch (error) {
+      setAiError(
+        error instanceof Error
+          ? error.message
+          : "Draft generate করতে সমস্যা হয়েছে",
+      );
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
 
   return (
     <Card>
@@ -91,12 +174,95 @@ export function PostForm({ post, tags }: PostFormProps) {
             </div>
           )}
 
+          <div className="space-y-4 rounded-md border p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">AI Draft (Self-RAG)</p>
+                <p className="text-xs text-muted-foreground">
+                  Topic, keywords, tags থেকে context নিয়ে draft তৈরি করবে
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleGenerateDraft}
+                disabled={isGeneratingAi}
+                variant="secondary"
+              >
+                {isGeneratingAi ? (
+                  "Generating..."
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate Draft
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="aiTopic">Topic</Label>
+                <Input
+                  id="aiTopic"
+                  value={aiTopic}
+                  onChange={(event) => setAiTopic(event.target.value)}
+                  placeholder="e.g. NestJS rate limiting setup"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="aiTone">Tone</Label>
+                <Input
+                  id="aiTone"
+                  value={aiTone}
+                  onChange={(event) => setAiTone(event.target.value)}
+                  placeholder="practical and friendly"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="aiAudience">Audience</Label>
+              <Input
+                id="aiAudience"
+                value={aiAudience}
+                onChange={(event) => setAiAudience(event.target.value)}
+                placeholder="who will read this post?"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="aiKeywords">Focus Keywords (comma separated)</Label>
+              <Input
+                id="aiKeywords"
+                value={aiKeywords}
+                onChange={(event) => setAiKeywords(event.target.value)}
+                placeholder="nestjs, redis, throttler"
+              />
+            </div>
+
+            {aiError && (
+              <p className="text-xs text-destructive" role="alert">
+                {aiError}
+              </p>
+            )}
+
+            {(aiSourcesUsed > 0 || aiReviewNotes.length > 0) && (
+              <div className="space-y-1 text-xs text-muted-foreground">
+                <p>Retrieved sources: {aiSourcesUsed}</p>
+                {aiReviewNotes.length > 0 && (
+                  <p>Review notes: {aiReviewNotes.join(" | ")}</p>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input
               id="title"
               name="title"
-              defaultValue={post?.title}
+              value={titleValue}
+              onChange={(event) => setTitleValue(event.target.value)}
               placeholder="Enter post title"
               required
               minLength={3}
@@ -150,10 +316,7 @@ export function PostForm({ post, tags }: PostFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select
-                name="status"
-                defaultValue={post?.status || PostStatus.DRAFT}
-              >
+              <Select name="status" defaultValue={post?.status || PostStatus.DRAFT}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -173,7 +336,8 @@ export function PostForm({ post, tags }: PostFormProps) {
             <Textarea
               id="content"
               name="content"
-              defaultValue={post?.content || ""}
+              value={contentValue}
+              onChange={(event) => setContentValue(event.target.value)}
               placeholder="Write your post content here (min 10 characters)..."
               rows={12}
               className="resize-y"
@@ -233,11 +397,7 @@ export function PostForm({ post, tags }: PostFormProps) {
             <div className="flex flex-wrap gap-2">
               {selectedTagLabels.length > 0 ? (
                 selectedTagLabels.map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    variant="secondary"
-                    className="gap-1 pr-1"
-                  >
+                  <Badge key={tag.id} variant="secondary" className="gap-1 pr-1">
                     {tag.name}
                     <button
                       type="button"
@@ -250,9 +410,7 @@ export function PostForm({ post, tags }: PostFormProps) {
                   </Badge>
                 ))
               ) : (
-                <p className="text-xs text-muted-foreground">
-                  No tags selected
-                </p>
+                <p className="text-xs text-muted-foreground">No tags selected</p>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
