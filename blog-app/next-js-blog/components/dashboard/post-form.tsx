@@ -17,12 +17,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import type { RagDraftResponse } from "@/types/api";
 import type { Post, Tag } from "@/types/entities";
 import { PostStatus, PostType } from "@/types/entities";
 import { Save, Sparkles, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useActionState, useMemo, useState } from "react";
+
+const Editor = dynamic(
+  () => import("@/components/editor/ckeditor").then((m) => m.CustomCKEditor),
+  {
+    ssr: false,
+    loading: () => <p className="text-muted-foreground">Loading editor...</p>,
+  },
+);
 
 interface PostFormProps {
   post?: Post;
@@ -231,7 +239,9 @@ export function PostForm({ post, tags }: PostFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="aiKeywords">Focus Keywords (comma separated)</Label>
+              <Label htmlFor="aiKeywords">
+                Focus Keywords (comma separated)
+              </Label>
               <Input
                 id="aiKeywords"
                 value={aiKeywords}
@@ -316,7 +326,10 @@ export function PostForm({ post, tags }: PostFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select name="status" defaultValue={post?.status || PostStatus.DRAFT}>
+              <Select
+                name="status"
+                defaultValue={post?.status || PostStatus.DRAFT}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -333,15 +346,13 @@ export function PostForm({ post, tags }: PostFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="content">Content</Label>
-            <Textarea
-              id="content"
-              name="content"
-              value={contentValue}
-              onChange={(event) => setContentValue(event.target.value)}
-              placeholder="Write your post content here (min 10 characters)..."
-              rows={12}
-              className="resize-y"
-            />
+            <input type="hidden" name="content" value={contentValue} />
+            <div className="rounded-md border bg-background">
+              <Editor
+                data={contentValue}
+                onChange={(data) => setContentValue(data)}
+              />
+            </div>
             {state.fieldErrors?.content && (
               <p className="text-xs text-destructive">
                 {state.fieldErrors.content[0]}
@@ -397,7 +408,11 @@ export function PostForm({ post, tags }: PostFormProps) {
             <div className="flex flex-wrap gap-2">
               {selectedTagLabels.length > 0 ? (
                 selectedTagLabels.map((tag) => (
-                  <Badge key={tag.id} variant="secondary" className="gap-1 pr-1">
+                  <Badge
+                    key={tag.id}
+                    variant="secondary"
+                    className="gap-1 pr-1"
+                  >
                     {tag.name}
                     <button
                       type="button"
@@ -410,7 +425,9 @@ export function PostForm({ post, tags }: PostFormProps) {
                   </Badge>
                 ))
               ) : (
-                <p className="text-xs text-muted-foreground">No tags selected</p>
+                <p className="text-xs text-muted-foreground">
+                  No tags selected
+                </p>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
