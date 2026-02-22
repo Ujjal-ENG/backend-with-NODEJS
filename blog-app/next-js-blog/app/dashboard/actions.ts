@@ -36,7 +36,6 @@ const postSchema = z.object({
   content: z
     .string()
     .min(10, "Content must be at least 10 characters")
-    .max(1000)
     .optional()
     .or(z.literal("")),
   schema: z.string().optional().or(z.literal("")),
@@ -153,6 +152,41 @@ export async function updatePostAction(
   }
 
   redirect("/dashboard/posts");
+}
+
+/**
+ * Lightweight PATCH that only updates the `content` field of an existing post.
+ * Called automatically while the user is editing so that image URLs embedded
+ * by CKEditor are persisted as soon as the upload resolves — without waiting
+ * for the full form to be submitted.
+ */
+export async function autosavePostAction(
+  id: number,
+  content: string,
+): Promise<{ error?: string }> {
+  const session = await getSession();
+  if (!session) return { error: "Not authenticated" };
+  if (!Number.isFinite(id) || id <= 0) return { error: "Invalid post id" };
+
+  let post: Post;
+  try {
+    post = await apiFetch<Post>(`/posts/${id}`);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to load post" };
+  }
+
+  if (!canEditPost(session, post)) return { error: "Not allowed" };
+
+  try {
+    await apiFetch<Post>(`/posts/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ content }),
+    });
+    updateTag("posts");
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to autosave" };
+  }
 }
 
 export async function deletePostAction(formData: FormData) {
