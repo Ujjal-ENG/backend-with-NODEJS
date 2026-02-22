@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  autosavePostAction,
   createPostAction,
   updatePostAction,
   type PostActionState,
@@ -22,7 +23,14 @@ import type { Post, Tag } from "@/types/entities";
 import { PostStatus, PostType } from "@/types/entities";
 import { Save, Sparkles, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useActionState, useMemo, useState } from "react";
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 const Editor = dynamic(
   () => import("@/components/editor/ckeditor").then((m) => m.CustomCKEditor),
@@ -43,12 +51,32 @@ export function PostForm({ post, tags }: PostFormProps) {
     PostActionState,
     FormData
   >(action, {});
+
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>(() =>
     Array.from(new Set((post?.tags ?? []).map((tag) => tag.id))),
   );
   const [tagSelectKey, setTagSelectKey] = useState(0);
   const [titleValue, setTitleValue] = useState(post?.title ?? "");
+
+  // contentValue drives the Editor's `data` prop (needed for AI-draft injection).
+  // The hidden input is UNCONTROLLED and updated via contentInputRef so that
+  // the DOM value is always in sync with the editor regardless of React's
+  // async batching scheduler.
   const [contentValue, setContentValue] = useState(post?.content ?? "");
+  const contentInputRef = useRef<HTMLInputElement>(null);
+
+  // Holds the live CKEditor instance so we can call getData() at any time.
+  const editorRef = useRef<any>(null);
+
+  // Autosave debounce timer (only used when editing an existing post).
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isAutosaving, setIsAutosaving] = useState(false);
+  const [autosaveError, setAutosaveError] = useState<string | null>(null);
+
+  // Track active CKEditor image uploads so we can block form submission.
+  // ckeditor.tsx dispatches "ckeditor:upload:start" / "ckeditor:upload:end".
+  const [activeUploads, setActiveUploads] = useState(0);
+
   const [aiTopic, setAiTopic] = useState(post?.title ?? "");
   const [aiTone, setAiTone] = useState("practical and clear");
   const [aiAudience, setAiAudience] = useState("বাংলা ব্লগ পাঠক");
@@ -58,11 +86,33 @@ export function PostForm({ post, tags }: PostFormProps) {
   const [aiReviewNotes, setAiReviewNotes] = useState<string[]>([]);
   const [aiSourcesUsed, setAiSourcesUsed] = useState<number>(0);
 
+  // Listen for upload lifecycle events emitted by MinioUploadAdapter.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const onStart = () => setActiveUploads((c) => c + 1);
+    const onEnd = () => setActiveUploads((c) => Math.max(0, c - 1));
+
+    window.addEventListener("ckeditor:upload:start", onStart);
+    window.addEventListener("ckeditor:upload:end", onEnd);
+
+    return () => {
+      window.removeEventListener("ckeditor:upload:start", onStart);
+      window.removeEventListener("ckeditor:upload:end", onEnd);
+    };
+  }, []);
+
+  // Cleanup autosave timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, []);
+
   const selectedTagLabels = useMemo(() => {
     const tagMap = new Map(
       (tags ? tags : (post?.tags ?? [])).map((tag) => [tag.id, tag.name]),
     );
-
     return selectedTagIds.map((tagId) => ({
       id: tagId,
       name: tagMap.get(tagId) ?? `Tag #${tagId}`,
@@ -79,10 +129,7 @@ export function PostForm({ post, tags }: PostFormProps) {
 
   const addTag = (tagIdString: string) => {
     const tagId = Number(tagIdString);
-    if (!Number.isFinite(tagId) || tagId <= 0) {
-      return;
-    }
-
+    if (!Number.isFinite(tagId) || tagId <= 0) return;
     setSelectedTagIds((current) =>
       current.includes(tagId) ? current : [...current, tagId],
     );
@@ -100,10 +147,43 @@ export function PostForm({ post, tags }: PostFormProps) {
       .filter(Boolean)
       .slice(0, 10);
 
-  const handleGenerateDraft = async () => {
-    if (isGeneratingAi) {
-      return;
+  /**
+   * Sync helper: update the hidden input's DOM value immediately (synchronous,
+   * bypasses React's batched state scheduler) AND update the React state so
+   * the Editor's `data` prop also reflects the latest content.
+   */
+  const syncContent = useCallback((data: string) => {
+    if (contentInputRef.current) {
+      contentInputRef.current.value = data;
     }
+    setContentValue(data);
+  }, []);
+
+  /**
+   * Called on every editor change.
+   * 1. Immediately writes to the uncontrolled hidden input (no batching delay).
+   * 2. Schedules a debounced autosave PATCH for existing posts.
+   */
+  const handleEditorChange = useCallback(
+    (data: string) => {
+      syncContent(data);
+
+      if (!post?.id) return;
+
+      setAutosaveError(null);
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+      autosaveTimer.current = setTimeout(async () => {
+        setIsAutosaving(true);
+        const result = await autosavePostAction(post.id, data);
+        setIsAutosaving(false);
+        if (result.error) setAutosaveError(result.error);
+      }, 2000);
+    },
+    [post?.id, syncContent],
+  );
+
+  const handleGenerateDraft = async () => {
+    if (isGeneratingAi) return;
 
     const topic = aiTopic.trim() || titleValue.trim();
     if (topic.length < 5) {
@@ -117,9 +197,7 @@ export function PostForm({ post, tags }: PostFormProps) {
     try {
       const response = await fetch("/api/posts/assist", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic,
           tone: aiTone.trim() || undefined,
@@ -145,25 +223,40 @@ export function PostForm({ post, tags }: PostFormProps) {
         setAiError(
           "message" in payload && payload.message
             ? payload.message
-            : "Draft generate করতে সমস্যা হয়েছে",
+            : "Draft generate করতে সমস্যা হয়েছে",
         );
         return;
       }
 
       const generated = payload as RagDraftResponse;
       setTitleValue(generated.title);
-      setContentValue(generated.draft);
       setAiTopic(generated.title);
       setAiReviewNotes(generated.reviewNotes ?? []);
       setAiSourcesUsed(generated.retrievedSources?.length ?? 0);
+      // Use syncContent so the hidden input and the editor both get the new draft.
+      syncContent(generated.draft);
     } catch (error) {
       setAiError(
         error instanceof Error
           ? error.message
-          : "Draft generate করতে সমস্যা হয়েছে",
+          : "Draft generate করতে সমস্যা হয়েছে",
       );
     } finally {
       setIsGeneratingAi(false);
+    }
+  };
+
+  const isSaveBlocked = isPending || activeUploads > 0;
+
+  /**
+   * Read the editor's live content at the exact moment the form is submitted.
+   * This is the last-resort safety net against any async batching race
+   * conditions — the hidden input is updated synchronously before React/the
+   * server action builds the FormData.
+   */
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (editorRef.current && contentInputRef.current) {
+      contentInputRef.current.value = editorRef.current.getData();
     }
   };
 
@@ -173,7 +266,11 @@ export function PostForm({ post, tags }: PostFormProps) {
         <CardTitle>{post ? "Edit Post" : "Create New Post"}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="space-y-6">
+        <form
+          action={formAction}
+          onSubmit={handleFormSubmit}
+          className="space-y-6"
+        >
           {post && <input type="hidden" name="id" value={post.id} />}
 
           {state.error && (
@@ -187,7 +284,7 @@ export function PostForm({ post, tags }: PostFormProps) {
               <div className="space-y-1">
                 <p className="text-sm font-medium">AI Draft (Self-RAG)</p>
                 <p className="text-xs text-muted-foreground">
-                  Topic, keywords, tags থেকে context নিয়ে draft তৈরি করবে
+                  Topic, keywords, tags থেকে context নিয়ে draft তৈরি করবে
                 </p>
               </div>
               <Button
@@ -346,11 +443,26 @@ export function PostForm({ post, tags }: PostFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="content">Content</Label>
-            <input type="hidden" name="content" value={contentValue} />
+            {/*
+             * UNCONTROLLED hidden input: React does not own this value after
+             * mount. handleEditorChange writes to it directly via
+             * contentInputRef so that the DOM is always up-to-date even when
+             * React's batched state scheduler hasn't flushed yet (e.g. right
+             * after an async image-upload XHR completes).
+             */}
+            <input
+              type="hidden"
+              name="content"
+              ref={contentInputRef}
+              defaultValue={post?.content ?? ""}
+            />
             <div className="rounded-md border bg-background">
               <Editor
                 data={contentValue}
-                onChange={(data) => setContentValue(data)}
+                onChange={handleEditorChange}
+                onReady={(editor) => {
+                  editorRef.current = editor;
+                }}
               />
             </div>
             {state.fieldErrors?.content && (
@@ -441,10 +553,12 @@ export function PostForm({ post, tags }: PostFormProps) {
             value={post?.publishedOn || new Date().toISOString()}
           />
 
-          <div className="flex gap-3">
-            <Button type="submit" disabled={isPending}>
-              {isPending ? (
-                "Saving..."
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={isSaveBlocked}>
+              {activeUploads > 0 ? (
+                "Uploading image…"
+              ) : isPending ? (
+                "Saving…"
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
@@ -452,6 +566,17 @@ export function PostForm({ post, tags }: PostFormProps) {
                 </>
               )}
             </Button>
+
+            {/* Autosave status indicator (edit mode only) */}
+            {post?.id && (
+              <span className="text-xs text-muted-foreground">
+                {isAutosaving
+                  ? "Auto-saving…"
+                  : autosaveError
+                    ? `Auto-save failed: ${autosaveError}`
+                    : ""}
+              </span>
+            )}
           </div>
         </form>
       </CardContent>
