@@ -1,0 +1,21 @@
+{
+  "props": {
+    "pageProps": {
+      "initialState": {
+        "productReducer": {
+          "bottomCategoryListProducts": [
+            {
+              "product_name": "Sample Earbuds",
+              "product_price": 3999,
+              "product_specialPrice": 2999,
+              "product_discount": 25,
+              "slug": "sample-earbuds",
+              "product_img": "https://storage.googleapis.com/sample-earbuds.jpg",
+              "offers": "1"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
