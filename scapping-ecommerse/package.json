@@ -1,0 +1,46 @@
+{
+  "name": "live-bd-deals-scraper",
+  "version": "1.0.0",
+  "description": "Live Bangladeshi e-commerce deal scraper with Express + EJS",
+  "type": "module",
+  "main": "src/server.ts",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "nodemon --watch src --ext ts,ejs,css --exec \"tsx src/server.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "py": "uv run --with-requirements requirements.txt -m python_scrapers",
+    "py:startech": "uv run --with-requirements requirements.txt -m python_scrapers startech scrape",
+    "py:facebook": "uv run --with-requirements requirements.txt -m python_scrapers facebook-graph"
+  },
+  "dependencies": {
+    "axios": "^1.8.4",
+    "cheerio": "^1.0.0",
+    "compression": "^1.8.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.0",
+    "node-cron": "^4.0.7",
+    "p-limit": "^6.2.0",
+    "puppeteer": "^24.4.0",
+    "robots-parser": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.3.3",
+    "@types/supertest": "^7.2.0",
+    "nock": "^14.0.3",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.1.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.0.8"
+  }
+}
