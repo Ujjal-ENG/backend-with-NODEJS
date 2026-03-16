@@ -1,0 +1,446 @@
+<section class="filters">
+  <form method="get" action="/" class="filter-form">
+    <label>
+      Category
+      <select name="category">
+        <% categoryOptions.forEach((option) => { %>
+          <option value="<%= option.value %>" <%= query.category === option.value ? 'selected' : '' %>><%= option.label %></option>
+        <% }) %>
+      </select>
+    </label>
+
+    <label>
+      Source (comma separated)
+      <input name="source" type="text" value="<%= query.source || '' %>" placeholder="daraz,startech" />
+    </label>
+
+    <label>
+      Search
+      <input name="q" type="text" value="<%= query.q || '' %>" placeholder="phone, rice, earbuds" />
+    </label>
+
+    <label>
+      Sort
+      <select name="sort">
+        <% sortOptions.forEach((option) => { %>
+          <option value="<%= option.value %>" <%= query.sort === option.value ? 'selected' : '' %>><%= option.label %></option>
+        <% }) %>
+      </select>
+    </label>
+
+    <button type="submit">Apply</button>
+  </form>
+</section>
+
+<section class="search-section">
+  <h2>Search Lowest Price in Bangladesh</h2>
+  <p class="section-desc">Type any product name (e.g. "MacBook M4 Pro") to find the lowest price across all BD e-commerce sites</p>
+  <form method="get" action="/" class="search-form">
+    <input
+      name="searchQ"
+      type="text"
+      value="<%= searchQuery || '' %>"
+      placeholder="e.g. MacBook M4 Pro, iPhone 16, Samsung S24"
+      class="search-input"
+    />
+    <button type="submit">Find Lowest Price</button>
+  </form>
+
+  <% if (searchError) { %>
+    <p class="error">Search failed: <%= searchError %></p>
+  <% } %>
+
+  <% if (searchResult) { %>
+    <div class="search-results">
+      <div class="search-meta">
+        <p>
+          Query: <strong><%= searchResult.meta.query %></strong>
+          | Results: <strong><%= searchResult.meta.totalResults %></strong>
+          | Time: <strong><%= searchResult.meta.durationMs %>ms</strong>
+        </p>
+      </div>
+
+      <% if (searchResult.lowestPrice) { %>
+        <div class="lowest-price-card">
+          <h3>Lowest Price Found</h3>
+          <div class="lowest-price-details">
+            <% if (searchResult.lowestPrice.imageUrl) { %>
+              <img src="<%= searchResult.lowestPrice.imageUrl %>" alt="<%= searchResult.lowestPrice.title %>" class="lowest-price-img" />
+            <% } %>
+            <div>
+              <p class="lowest-price-title"><%= searchResult.lowestPrice.title %></p>
+              <p class="lowest-price-amount"><%= searchResult.lowestPrice.priceFormatted %></p>
+              <p>Source: <strong><%= searchResult.lowestPrice.source %></strong></p>
+              <% if (searchResult.savings) { %>
+                <p class="savings">
+                  Save <%= searchResult.savings.amountFormatted %> compared to
+                  <strong><%= searchResult.savings.comparedTo.source %></strong>
+                </p>
+              <% } %>
+              <a href="<%= searchResult.lowestPrice.productUrl %>" target="_blank" rel="noopener noreferrer" class="btn-buy">View Product</a>
+            </div>
+          </div>
+        </div>
+      <% } else { %>
+        <p>No products found matching your query.</p>
+      <% } %>
+
+      <% if (searchResult.priceComparison && searchResult.priceComparison.length > 1) { %>
+        <h3>Price Comparison Across Sites</h3>
+        <div class="table-wrap">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Relevance</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% searchResult.priceComparison.forEach((item, i) => { %>
+                <tr class="<%= i === 0 ? 'best-price-row' : '' %>">
+                  <td><%= item.source %></td>
+                  <td><%= item.title.slice(0, 80) %></td>
+                  <td><%= item.priceFormatted %></td>
+                  <td><%= item.relevanceScore %></td>
+                  <td><a href="<%= item.productUrl %>" target="_blank" rel="noopener noreferrer">Open</a></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+
+      <% if (searchResult.allResults && searchResult.allResults.length > 0) { %>
+        <details>
+          <summary>All Results (<%= searchResult.allResults.length %>)</summary>
+          <div class="table-wrap">
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Original</th>
+                  <th>Discount</th>
+                  <th>Link</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% searchResult.allResults.forEach((item) => { %>
+                  <tr>
+                    <td><%= item.source %></td>
+                    <td><%= item.title.slice(0, 80) %></td>
+                    <td><%= item.priceFormatted %></td>
+                    <td><%= item.priceOriginal ? `৳${Math.round(item.priceOriginal)}` : '-' %></td>
+                    <td><%= item.discountPercent ? `${item.discountPercent}%` : '-' %></td>
+                    <td><a href="<%= item.productUrl %>" target="_blank" rel="noopener noreferrer">Open</a></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      <% } %>
+
+      <% if (searchResult.meta.warnings && searchResult.meta.warnings.length > 0) { %>
+        <details>
+          <summary>Warnings (<%= searchResult.meta.warnings.length %>)</summary>
+          <ul>
+            <% searchResult.meta.warnings.forEach((w) => { %>
+              <li class="warning"><%= w %></li>
+            <% }) %>
+          </ul>
+        </details>
+      <% } %>
+    </div>
+  <% } %>
+</section>
+
+<section class="scrape-section">
+  <h2>Scrape Any URL</h2>
+  <p class="section-desc">Paste any product page or listing URL to extract product information and prices</p>
+  <form method="get" action="/" class="scrape-form">
+    <input
+      name="scrapeUrl"
+      type="url"
+      value="<%= scrapeUrl || '' %>"
+      placeholder="https://www.example.com/product-page"
+    />
+    <button type="submit">Scrape</button>
+  </form>
+
+  <% if (scrapeError) { %>
+    <p class="error">Scrape failed: <%= scrapeError %></p>
+  <% } %>
+
+  <% if (scrapeResult) { %>
+    <div class="scrape-results">
+      <div class="scrape-summary">
+        <h3><%= scrapeResult.title %></h3>
+        <% if (scrapeResult.description) { %>
+          <p class="scrape-desc"><%= scrapeResult.description.slice(0, 200) %></p>
+        <% } %>
+        <p>Host: <strong><%= scrapeResult.hostname %></strong></p>
+        <% if (scrapeResult.price) { %>
+          <p>Price detected: <strong>৳<%= Math.round(scrapeResult.price) %></strong></p>
+        <% } %>
+      </div>
+
+      <% if (scrapeResult.products && scrapeResult.products.length > 0) { %>
+        <h4>Products Found (<%= scrapeResult.products.length %>)</h4>
+        <div class="table-wrap">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Price</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% scrapeResult.products.forEach((p) => { %>
+                <tr>
+                  <td><%= p.title.slice(0, 80) %></td>
+                  <td>৳<%= Math.round(p.price) %></td>
+                  <td><a href="<%= p.url %>" target="_blank" rel="noopener noreferrer">Open</a></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+</section>
+
+<section class="compare-section">
+  <h2>Compare Price by Product URL</h2>
+  <form method="get" action="/" class="compare-form">
+    <input
+      name="compareUrl"
+      type="url"
+      required
+      value="<%= compareUrl || '' %>"
+      placeholder="Paste product URL from Daraz/Pickaboo/Startech/etc."
+    />
+    <button type="submit">Compare</button>
+  </form>
+
+  <% if (compareError) { %>
+    <p class="error">Compare failed: <%= compareError %></p>
+  <% } %>
+
+  <% if (compareResult) { %>
+    <div class="compare-summary">
+      <p>
+        Seed product:
+        <strong><%= compareResult.seed.title %></strong>
+        <% if (compareResult.seed.priceCurrent) { %>
+          (৳<%= Math.round(compareResult.seed.priceCurrent) %>)
+        <% } else { %>
+          (price unavailable)
+        <% } %>
+      </p>
+      <% if (compareResult.bestMatch) { %>
+        <p>
+          Best matched offer:
+          <strong><%= compareResult.bestMatch.source %></strong> - ৳<%= Math.round(compareResult.bestMatch.priceCurrent) %>
+          <% if (compareResult.savings.amount !== null) { %>
+            | Save ৳<%= Math.round(compareResult.savings.amount) %>
+            <% if (compareResult.savings.percent) { %>
+              (<%= compareResult.savings.percent %>%)
+            <% } %>
+          <% } %>
+        </p>
+      <% } else { %>
+        <p>No comparable product found across current scraped deals.</p>
+      <% } %>
+    </div>
+
+    <% if (compareResult.compared && compareResult.compared.length > 0) { %>
+      <div class="table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Title</th>
+              <th>Price</th>
+              <th>Discount</th>
+              <th>Match</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% compareResult.compared.forEach((item) => { %>
+              <tr>
+                <td><%= item.source %></td>
+                <td><%= item.title %></td>
+                <td>৳<%= Math.round(item.priceCurrent) %></td>
+                <td><%= item.discountPercent ? `${item.discountPercent}%` : '-' %></td>
+                <td><%= item.score %></td>
+                <td><a href="<%= item.productUrl %>" target="_blank" rel="noopener noreferrer">Open</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  <% } %>
+</section>
+
+<section class="query-section">
+  <h2>Find Product by Source or Website + Query</h2>
+  <form method="get" action="/" class="query-form">
+    <input
+      name="finderSource"
+      type="text"
+      value="<%= finderQuery?.sourceOrWebsite || '' %>"
+      placeholder="daraz or https://www.startech.com.bd"
+    />
+    <input
+      name="finderQ"
+      type="text"
+      value="<%= finderQuery?.q || '' %>"
+      placeholder="iphone 15, thinkpad, earbuds, rice"
+    />
+    <input
+      name="finderLimit"
+      type="number"
+      min="1"
+      max="20"
+      value="<%= finderQuery?.limit || '8' %>"
+      aria-label="Result limit"
+    />
+    <label class="checkbox-inline">
+      <input
+        type="checkbox"
+        name="finderRefresh"
+        value="1"
+        <%= finderQuery?.refresh === '1' ? 'checked' : '' %>
+      />
+      fresh scrape
+    </label>
+    <button type="submit">Find Products</button>
+  </form>
+
+  <% if (finderError) { %>
+    <p class="error">Query search failed: <%= finderError %></p>
+  <% } %>
+
+  <% if (finderResult) { %>
+    <div class="compare-summary">
+      <p>
+        Source: <strong><%= finderResult.meta.resolvedSource %></strong>
+        | Query: <strong><%= finderResult.meta.query %></strong>
+        | Results: <strong><%= finderResult.meta.resultCount %></strong>
+        | From cache: <strong><%= finderResult.meta.fromCache ? 'Yes' : 'No' %></strong>
+      </p>
+      <% if (finderResult.meta.warnings && finderResult.meta.warnings.length > 0) { %>
+        <ul>
+          <% finderResult.meta.warnings.forEach((warning) => { %>
+            <li class="warning"><%= warning %></li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+
+    <% if (finderResult.results && finderResult.results.length > 0) { %>
+      <div class="query-results">
+        <% finderResult.results.forEach((item) => { %>
+          <article class="query-card">
+            <h3><%= item.seed.title %></h3>
+            <p>
+              Seed: <strong><%= item.seed.source %></strong> | ৳<%= Math.round(item.seed.priceCurrent) %>
+            </p>
+            <% if (item.bestAlternative) { %>
+              <p>
+                Best alternative: <strong><%= item.bestAlternative.source %></strong>
+                | ৳<%= Math.round(item.bestAlternative.priceCurrent) %>
+                <% if (item.savings?.amount !== null) { %>
+                  | Save ৳<%= Math.round(item.savings.amount) %>
+                  <% if (item.savings?.percent) { %>
+                    (<%= item.savings.percent %>%)
+                  <% } %>
+                <% } %>
+              </p>
+            <% } else { %>
+              <p>No cross-site alternative found for this seed.</p>
+            <% } %>
+
+            <% if (item.alternatives && item.alternatives.length > 0) { %>
+              <div class="table-wrap">
+                <table class="compare-table">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Price</th>
+                      <th>Score</th>
+                      <th>Link</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% item.alternatives.slice(0, 4).forEach((alt) => { %>
+                      <tr>
+                        <td><%= alt.source %></td>
+                        <td>৳<%= Math.round(alt.priceCurrent) %></td>
+                        <td><%= alt.score %></td>
+                        <td><a href="<%= alt.productUrl %>" target="_blank" rel="noopener noreferrer">Open</a></td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+            <% } %>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  <% } %>
+</section>
+
+<section class="meta">
+  <% if (pageError) { %>
+    <p class="error">Failed to load deals: <%= pageError %></p>
+  <% } %>
+
+  <p>
+    Last scraped: <strong><%= new Date(payload.meta.generatedAt).toLocaleString('en-BD', { timeZone: 'Asia/Dhaka' }) %></strong>
+    | From cache: <strong><%= payload.meta.fromCache ? 'Yes' : 'No' %></strong>
+    | Total deals: <strong><%= payload.meta.totalDeals %></strong>
+  </p>
+</section>
+
+<section class="sources">
+  <h2>Source Status</h2>
+  <ul>
+    <% payload.sources.forEach((source) => { %>
+      <li>
+        <strong><%= source.source %></strong>: <span class="status status-<%= source.status %>"><%= source.status %></span>
+        (count: <%= source.count %>, time: <%= source.durationMs %>ms)
+        <% if (source.warnings && source.warnings.length > 0) { %>
+          <details>
+            <summary>Warnings (<%= source.warnings.length %>)</summary>
+            <ul>
+              <% source.warnings.forEach((warning) => { %>
+                <li><%= warning %></li>
+              <% }) %>
+            </ul>
+          </details>
+        <% } %>
+      </li>
+    <% }) %>
+  </ul>
+</section>
+
+<section class="deals-grid">
+  <% if (payload.deals.length === 0) { %>
+    <p class="empty">No deals found for the selected filters.</p>
+  <% } %>
+
+  <% payload.deals.forEach((deal) => { %>
+    <%- include('partials/deal-card', { deal }) %>
+  <% }) %>
+</section>
