@@ -1,0 +1,32 @@
+<article class="deal-card">
+  <a href="<%= deal.productUrl %>" target="_blank" rel="noopener noreferrer" class="deal-image-wrap">
+    <% if (deal.imageUrl) { %>
+      <img src="<%= deal.imageUrl %>" alt="<%= deal.title %>" loading="lazy" />
+    <% } else { %>
+      <div class="image-fallback">No Image</div>
+    <% } %>
+  </a>
+
+  <div class="deal-content">
+    <h3><%= deal.title %></h3>
+
+    <p class="prices">
+      <span class="current">৳<%= Math.round(deal.priceCurrent) %></span>
+      <% if (deal.priceOriginal) { %>
+        <span class="original">৳<%= Math.round(deal.priceOriginal) %></span>
+      <% } %>
+    </p>
+
+    <p class="badges">
+      <span class="badge source"><%= deal.source %></span>
+      <span class="badge category"><%= deal.category %></span>
+      <% if (deal.discountPercent) { %>
+        <span class="badge discount">-<%= deal.discountPercent %>%</span>
+      <% } else if (deal.discountLabel) { %>
+        <span class="badge discount"><%= deal.discountLabel %></span>
+      <% } %>
+    </p>
+
+    <a href="<%= deal.productUrl %>" target="_blank" rel="noopener noreferrer" class="visit-btn">View Deal</a>
+  </div>
+</article>
