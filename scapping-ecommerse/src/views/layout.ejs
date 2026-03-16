@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= pageTitle %></title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Live BD Deals</h1>
+    <p>Discounted gadgets and grocery offers from Bangladeshi sources</p>
+  </header>
+
+  <main class="container">
+    <%- include(bodyTemplate, {
+      payload,
+      categoryOptions,
+      sortOptions,
+      sourceOptions,
+      query,
+      pageError: typeof pageError === 'undefined' ? null : pageError,
+      compareUrl: typeof compareUrl === 'undefined' ? '' : compareUrl,
+      compareResult: typeof compareResult === 'undefined' ? null : compareResult,
+      compareError: typeof compareError === 'undefined' ? null : compareError,
+      finderQuery: typeof finderQuery === 'undefined' ? { sourceOrWebsite: '', q: '', limit: '8', refresh: '0' } : finderQuery,
+      finderResult: typeof finderResult === 'undefined' ? null : finderResult,
+      finderError: typeof finderError === 'undefined' ? null : finderError,
+      searchQuery: typeof searchQuery === 'undefined' ? '' : searchQuery,
+      searchResult: typeof searchResult === 'undefined' ? null : searchResult,
+      searchError: typeof searchError === 'undefined' ? null : searchError,
+      scrapeUrl: typeof scrapeUrl === 'undefined' ? '' : scrapeUrl,
+      scrapeResult: typeof scrapeResult === 'undefined' ? null : scrapeResult,
+      scrapeError: typeof scrapeError === 'undefined' ? null : scrapeError
+    }) %>
+  </main>
+
+  <footer class="footer">
+    <small>Live scraping with in-memory cache (no database)</small>
+  </footer>
+</body>
+</html>
