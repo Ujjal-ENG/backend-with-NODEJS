@@ -1,0 +1,14 @@
+{
+  "mods": {
+    "listItems": [
+      {
+        "name": "Sample Smartphone",
+        "price": "19,999",
+        "originalPrice": "24,999",
+        "discount": "-20%",
+        "image": "https://img.drz.lazcdn.com/sample.jpg",
+        "itemUrl": "//www.daraz.com.bd/products/sample-smartphone-i123.html"
+      }
+    ]
+  }
+}
