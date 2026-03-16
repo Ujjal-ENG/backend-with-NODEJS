@@ -1,0 +1,6 @@
+node_modules
+.env
+.venv
+coverage
+.DS_Store
+pnpm-debug.log*
