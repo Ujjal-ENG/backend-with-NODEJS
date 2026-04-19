@@ -94,6 +94,8 @@ interface OrderRecord {
   createdAt: string;
   updatedAt: string;
   timeline: OrderTimelineEvent[];
+  publishFailures: string[];
+  crashedConsumer: string | null;
 }
 
 interface DashboardData {
@@ -465,10 +467,16 @@ export function OrderDashboard() {
               {error}
             </p>
           ) : null}
+
+          <ChaosPanel apiBase={API_BASE_URL} />
         </section>
       </section>
 
-      <RabbitMqFlowDiagram activeStatus={selectedOrder?.status ?? null} />
+      <RabbitMqFlowDiagram
+        activeStatus={selectedOrder?.status ?? null}
+        publishFailures={selectedOrder?.publishFailures ?? []}
+        crashedConsumer={selectedOrder?.crashedConsumer ?? null}
+      />
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-[28px] border border-[#1c3143] bg-[#0b1520]/90 p-6 shadow-[0_20px_70px_rgba(0,0,0,0.28)]">
@@ -519,30 +527,11 @@ export function OrderDashboard() {
 
               <div className="space-y-3">
                 {selectedOrder.timeline.map((event, index) => (
-                  <article
+                  <TimelineEvent
                     key={event.id}
-                    className="relative rounded-2xl border border-[#1f3347] bg-[#0b1824] p-4 pl-14"
-                  >
-                    <span className="absolute left-5 top-5 flex h-7 w-7 items-center justify-center rounded-full bg-[#78f0d4] text-xs font-semibold text-[#081018]">
-                      {index + 1}
-                    </span>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-lg font-medium text-white">
-                          {event.title}
-                        </h3>
-                        <p className="mt-1 text-sm leading-6 text-slate-300">
-                          {event.detail}
-                        </p>
-                      </div>
-                      <div className="text-right text-xs uppercase tracking-[0.18em] text-[#8fb0c7]">
-                        <p>{event.service}</p>
-                        <p className="mt-2 text-[11px] tracking-[0.16em] text-slate-400">
-                          {formatDateTime(event.happenedAt)}
-                        </p>
-                      </div>
-                    </div>
-                  </article>
+                    event={event}
+                    index={index}
+                  />
                 ))}
               </div>
             </div>
@@ -710,6 +699,136 @@ function EmptyState({ message }: Readonly<{ message: string }>) {
   );
 }
 
+function TimelineEvent({
+  event,
+  index,
+}: Readonly<{ event: OrderTimelineEvent; index: number }>) {
+  const type = event.type;
+  const isCrash = type === "consumer.crash";
+  const isRecovered = type === "consumer.recovered";
+  const isDeadLettered = type === "consumer.dead-lettered";
+  const isPublishFailed = type === "publish.failed";
+
+  const borderClass = isCrash
+    ? "border-orange-400/30 bg-[#1a0e00]"
+    : isDeadLettered || isPublishFailed
+      ? "border-rose-400/30 bg-[#1a0808]"
+      : isRecovered
+        ? "border-[#78f0d4]/25 bg-[#0b2420]"
+        : "border-[#1f3347] bg-[#0b1824]";
+
+  const badgeClass = isCrash
+    ? "bg-orange-500 text-white"
+    : isDeadLettered || isPublishFailed
+      ? "bg-rose-500 text-white"
+      : isRecovered
+        ? "bg-[#78f0d4] text-[#081018]"
+        : "bg-[#78f0d4] text-[#081018]";
+
+  const badgeSymbol = isCrash
+    ? "↺"
+    : isDeadLettered || isPublishFailed
+      ? "✗"
+      : isRecovered
+        ? "✓"
+        : index + 1;
+
+  const titleClass = isCrash
+    ? "text-orange-300"
+    : isDeadLettered || isPublishFailed
+      ? "text-rose-300"
+      : isRecovered
+        ? "text-[#78f0d4]"
+        : "text-white";
+
+  const serviceClass = isCrash
+    ? "text-orange-400/80"
+    : isDeadLettered || isPublishFailed
+      ? "text-rose-400/80"
+      : "text-[#8fb0c7]";
+
+  return (
+    <article
+      className={`relative rounded-2xl border p-4 pl-14 ${borderClass}`}
+    >
+      <span
+        className={`absolute left-5 top-5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${badgeClass}`}
+      >
+        {badgeSymbol}
+      </span>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className={`text-lg font-medium ${titleClass}`}>
+            {event.title}
+          </h3>
+          <p className="mt-1 text-sm leading-6 text-slate-300">{event.detail}</p>
+        </div>
+        <div className={`text-right text-xs uppercase tracking-[0.18em] ${serviceClass}`}>
+          <p>{event.service}</p>
+          <p className="mt-2 text-[11px] tracking-[0.16em] text-slate-400">
+            {formatDateTime(event.happenedAt)}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ChaosPanel({ apiBase }: Readonly<{ apiBase: string }>) {
+  const [status, setStatus] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function triggerCrash() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = await fetch(`${apiBase}/debug/crash-notification`, {
+        method: "POST",
+      });
+      const data = (await res.json()) as { pendingCrashes: number };
+      setStatus(
+        `Scheduled. Next ${data.pendingCrashes} notification delivery will NACK + requeue.`,
+      );
+    } catch {
+      setStatus("Failed to reach API.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-6 rounded-2xl border border-orange-400/20 bg-[#130d00] p-5">
+      <p className="mb-1 text-xs uppercase tracking-[0.26em] text-orange-400/80">
+        Chaos Engineering
+      </p>
+      <p className="mb-4 text-sm leading-6 text-slate-300">
+        Simulate a notification-service crash. The consumer will throw, RabbitMQ
+        will receive{" "}
+        <code className="rounded bg-white/8 px-1 font-mono text-xs text-orange-300">
+          NACK requeue=true
+        </code>{" "}
+        and redeliver the message. Up to{" "}
+        <code className="rounded bg-white/8 px-1 font-mono text-xs text-rose-300">
+          2 retries
+        </code>{" "}
+        before dead-lettering.
+      </p>
+      <button
+        onClick={triggerCrash}
+        disabled={busy}
+        className="flex items-center gap-2 rounded-full border border-orange-400/30 bg-orange-500/15 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300 transition hover:bg-orange-500/25 disabled:cursor-not-allowed disabled:opacity-60"
+        type="button"
+      >
+        <span>↯</span>
+        {busy ? "Scheduling…" : "Crash Notification Service"}
+      </button>
+      {status ? (
+        <p className="mt-3 text-xs text-orange-300/80">{status}</p>
+      ) : null}
+    </div>
+  );
+}
+
 // ─── RabbitMQ flow diagram ────────────────────────────────────────────────────
 
 const WORKFLOW_STEPS: Array<{
@@ -764,12 +883,16 @@ const STATUS_ORDER: OrderStatus[] = [
 ];
 
 function stepState(
-  completedWhen: OrderStatus,
+  ws: (typeof WORKFLOW_STEPS)[number],
   activeStatus: OrderStatus | null,
-): "done" | "active" | "pending" {
+  publishFailures: string[],
+  crashedConsumer: string | null,
+): "done" | "active" | "pending" | "failed" | "crashed" {
+  if (publishFailures.includes(ws.routingKey)) return "failed";
+  if (crashedConsumer === ws.consumer) return "crashed";
   if (!activeStatus) return "pending";
   const statusIdx = STATUS_ORDER.indexOf(activeStatus);
-  const doneIdx = STATUS_ORDER.indexOf(completedWhen);
+  const doneIdx = STATUS_ORDER.indexOf(ws.completedWhen);
   if (statusIdx >= doneIdx) return "done";
   // The step *before* completedWhen is the one currently running
   if (statusIdx === doneIdx - 1) return "active";
@@ -778,9 +901,15 @@ function stepState(
 
 function RabbitMqFlowDiagram({
   activeStatus,
+  publishFailures,
+  crashedConsumer,
 }: {
   activeStatus: OrderStatus | null;
+  publishFailures: string[];
+  crashedConsumer: string | null;
 }) {
+  const hasFailed = publishFailures.length > 0;
+
   return (
     <section className="rounded-[28px] border border-[#1c3143] bg-[#0b1520]/90 p-6 shadow-[0_20px_70px_rgba(0,0,0,0.28)] sm:p-8">
       {/* Header */}
@@ -806,6 +935,14 @@ function RabbitMqFlowDiagram({
             <span className="h-2 w-2 rounded-full bg-slate-600" />
             Pending
           </span>
+          <span className="flex items-center gap-2 text-orange-400">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
+            Crashed
+          </span>
+          <span className="flex items-center gap-2 text-rose-400">
+            <span className="h-2 w-2 rounded-full bg-rose-500" />
+            Failed
+          </span>
         </div>
       </div>
 
@@ -824,7 +961,7 @@ function RabbitMqFlowDiagram({
       {/* Main pipeline */}
       <div className="flex flex-col gap-3">
         {WORKFLOW_STEPS.map((ws) => {
-          const state = stepState(ws.completedWhen, activeStatus);
+          const state = stepState(ws, activeStatus, publishFailures, crashedConsumer);
           return <FlowStep key={ws.step} step={ws} state={state} />;
         })}
 
@@ -845,6 +982,90 @@ function RabbitMqFlowDiagram({
             wildcard · all events
           </span>
         </div>
+
+        {/* ACK / NACK explainer */}
+        <div className="mt-4 rounded-2xl border border-[#1c3143] bg-[#060f1a] p-5">
+          <p className="mb-4 text-xs uppercase tracking-[0.26em] text-[#8fb0c7]">
+            How ACK / NACK works
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="flex items-start gap-3 rounded-xl border border-[#78f0d4]/20 bg-[#0b2420] p-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#78f0d4] text-xs font-bold text-[#081018]">
+                ✓
+              </span>
+              <div>
+                <p className="font-mono text-xs font-medium text-[#78f0d4]">
+                  channel.ack(msg)
+                </p>
+                <p className="mt-1 text-[11px] leading-5 text-slate-400">
+                  Consumer processed successfully. RabbitMQ removes the message
+                  from the queue permanently.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-orange-400/20 bg-[#1a1000] p-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-500 text-xs font-bold text-white">
+                ↺
+              </span>
+              <div>
+                <p className="font-mono text-xs font-medium text-orange-300">
+                  nack(msg, requeue=true)
+                </p>
+                <p className="mt-1 text-[11px] leading-5 text-slate-400">
+                  Consumer crashed. Message is returned to the queue head and
+                  redelivered. Use for transient failures.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-rose-400/20 bg-[#1a0808] p-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
+                ✗
+              </span>
+              <div>
+                <p className="font-mono text-xs font-medium text-rose-300">
+                  nack(msg, requeue=false)
+                </p>
+                <p className="mt-1 text-[11px] leading-5 text-slate-400">
+                  Max retries exhausted. Message is dropped or routed to a
+                  dead-letter exchange for manual inspection.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dead letter queue — visible only when a publish failed */}
+        {hasFailed ? (
+          <div className="mt-2 flex flex-wrap items-start gap-3 rounded-2xl border border-rose-400/30 bg-[#1a0808] p-4">
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500 text-xs font-semibold text-white">
+                ✗
+              </span>
+              <span className="font-mono text-xs text-rose-400">
+                publish failed
+              </span>
+            </div>
+            <span className="shrink-0 text-slate-600">→</span>
+            <span className="shrink-0 rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-1.5 font-mono text-xs text-rose-300">
+              orders.dead-letter
+            </span>
+            <div className="ml-2 flex flex-wrap gap-2">
+              {publishFailures.map((key) => (
+                <span
+                  key={key}
+                  className="rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 font-mono text-[11px] text-rose-300"
+                >
+                  {key}
+                </span>
+              ))}
+            </div>
+            <p className="w-full text-[11px] leading-5 text-slate-400">
+              Channel unavailable when these messages were published. In
+              production a dead-letter exchange catches unrouted messages so
+              they can be replayed or inspected.
+            </p>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -855,35 +1076,90 @@ function FlowStep({
   state,
 }: {
   step: (typeof WORKFLOW_STEPS)[number];
-  state: "done" | "active" | "pending";
+  state: "done" | "active" | "pending" | "failed" | "crashed";
 }) {
   const borderColor =
     state === "done"
       ? "border-[#78f0d4]/30"
       : state === "active"
         ? "border-[#ffd376]/40"
-        : "border-[#1f3347]";
+        : state === "failed"
+          ? "border-rose-400/40"
+          : state === "crashed"
+            ? "border-orange-400/40"
+            : "border-[#1f3347]";
 
   const bgColor =
     state === "done"
       ? "bg-[#0b2420]"
       : state === "active"
         ? "bg-[#1a1a08]"
-        : "bg-[#0b1824]";
+        : state === "failed"
+          ? "bg-[#1a0808]"
+          : state === "crashed"
+            ? "bg-[#1a0e00]"
+            : "bg-[#0b1824]";
 
   const stepNumColor =
     state === "done"
       ? "bg-[#78f0d4] text-[#081018]"
       : state === "active"
         ? "bg-[#ffd376] text-[#091018]"
-        : "bg-[#1a2d3d] text-slate-400";
+        : state === "failed"
+          ? "bg-rose-500 text-white"
+          : state === "crashed"
+            ? "bg-orange-500 text-white animate-pulse"
+            : "bg-[#1a2d3d] text-slate-400";
 
   const routingKeyColor =
     state === "done"
       ? "bg-[#0e2e25] text-[#78f0d4] border-[#78f0d4]/20"
       : state === "active"
         ? "bg-[#2a1f00] text-[#ffd376] border-[#ffd376]/25 animate-pulse"
-        : "bg-[#0f1c28] text-slate-500 border-[#1f3347]";
+        : state === "failed"
+          ? "bg-rose-500/10 text-rose-300 border-rose-400/25 animate-pulse"
+          : state === "crashed"
+            ? "bg-orange-500/10 text-orange-300 border-orange-400/25"
+            : "bg-[#0f1c28] text-slate-500 border-[#1f3347]";
+
+  const queueColor =
+    state === "done"
+      ? "border-[#78f0d4]/20 bg-[#0e2e25] text-[#78f0d4]"
+      : state === "active"
+        ? "border-[#ffd376]/25 bg-[#2a1f00] text-[#ffd376]"
+        : state === "failed"
+          ? "border-rose-400/25 bg-rose-500/10 text-rose-300"
+          : state === "crashed"
+            ? "border-orange-400/25 bg-orange-500/10 text-orange-300"
+            : "border-[#203445] bg-[#0f1c28] text-slate-400";
+
+  const consumerColor =
+    state === "crashed"
+      ? "border-orange-400/25 bg-orange-500/10 text-orange-300"
+      : "border-[#203445] bg-[#0f1c28] text-slate-300";
+
+  const stateLabelColor =
+    state === "done"
+      ? "text-[#78f0d4]"
+      : state === "active"
+        ? "text-[#ffd376]"
+        : state === "failed"
+          ? "text-rose-400"
+          : state === "crashed"
+            ? "text-orange-400"
+            : "text-slate-600";
+
+  const stateSymbol =
+    state === "done"
+      ? "✓"
+      : state === "failed"
+        ? "✗"
+        : state === "crashed"
+          ? "↺"
+          : step.step;
+
+  const stateLabel =
+    state === "crashed" ? "NACK ↺ retry" : state;
 
   return (
     <div
@@ -893,7 +1169,7 @@ function FlowStep({
       <span
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${stepNumColor}`}
       >
-        {state === "done" ? "✓" : step.step}
+        {stateSymbol}
       </span>
 
       {/* Publisher */}
@@ -910,39 +1186,39 @@ function FlowStep({
         {step.routingKey}
       </span>
 
-      <FlowArrow />
+      {state === "failed" ? (
+        <span className="shrink-0 text-rose-500" aria-hidden>
+          ✗
+        </span>
+      ) : (
+        <FlowArrow />
+      )}
 
       {/* Queue */}
       <span
-        className={`shrink-0 rounded-xl border px-3 py-1.5 font-mono text-xs ${
-          state === "done"
-            ? "border-[#78f0d4]/20 bg-[#0e2e25] text-[#78f0d4]"
-            : state === "active"
-              ? "border-[#ffd376]/25 bg-[#2a1f00] text-[#ffd376]"
-              : "border-[#203445] bg-[#0f1c28] text-slate-400"
-        }`}
+        className={`shrink-0 rounded-xl border px-3 py-1.5 font-mono text-xs ${queueColor}`}
       >
-        {step.queue}
+        {state === "failed" ? "undelivered" : step.queue}
       </span>
 
-      <FlowArrow />
-
-      {/* Consumer */}
-      <span className="shrink-0 rounded-xl border border-[#203445] bg-[#0f1c28] px-3 py-1.5 font-mono text-xs text-slate-300">
-        {step.consumer}
-      </span>
+      {state !== "failed" ? (
+        <>
+          <FlowArrow />
+          {/* Consumer */}
+          <span
+            className={`shrink-0 rounded-xl border px-3 py-1.5 font-mono text-xs ${consumerColor}`}
+          >
+            {step.consumer}
+            {state === "crashed" ? " ↺" : ""}
+          </span>
+        </>
+      ) : null}
 
       {/* State label */}
       <span
-        className={`ml-auto shrink-0 text-[11px] uppercase tracking-[0.18em] ${
-          state === "done"
-            ? "text-[#78f0d4]"
-            : state === "active"
-              ? "text-[#ffd376]"
-              : "text-slate-600"
-        }`}
+        className={`ml-auto shrink-0 text-[11px] uppercase tracking-[0.18em] ${stateLabelColor}`}
       >
-        {state}
+        {stateLabel}
       </span>
     </div>
   );
